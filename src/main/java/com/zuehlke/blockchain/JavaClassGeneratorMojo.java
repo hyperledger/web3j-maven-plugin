@@ -2,9 +2,8 @@ package com.zuehlke.blockchain;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
@@ -33,9 +32,18 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "soliditySourceFiles", required = true)
     private FileSet soliditySourceFiles;
 
-
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     private MavenProject project;
+
+    public JavaClassGeneratorMojo() {
+    }
+
+    JavaClassGeneratorMojo(String packageName, String sourceDestination, FileSet soliditySourceFiles, MavenProject project) {
+        this.packageName = packageName;
+        this.sourceDestination = sourceDestination;
+        this.soliditySourceFiles = soliditySourceFiles;
+        this.project = project;
+    }
 
     public void execute() throws MojoExecutionException {
         if (soliditySourceFiles.getDirectory() == null) {
