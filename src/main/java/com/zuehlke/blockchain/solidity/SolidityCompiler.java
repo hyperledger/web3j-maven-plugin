@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
 /**
  * Compiles the given Solidity Contracts into binary code.
  *
@@ -45,8 +43,11 @@ public class SolidityCompiler {
             stream.write(source);
         }
 
-        String error = getInputStreamAsString(process.getErrorStream());
-        String output = getInputStreamAsString(process.getInputStream());
+        ParallelReader errorReader = new ParallelReader(process.getErrorStream());
+        ParallelReader outputReader = new ParallelReader(process.getInputStream());
+        errorReader.start();
+        outputReader.start();
+
 
         boolean success;
         try {
@@ -55,16 +56,11 @@ public class SolidityCompiler {
             //TODO
             throw new RuntimeException(e);
         }
-        return new CompilerResult(error, output, success);
-    }
 
-    private String getInputStreamAsString(InputStream is) {
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(is))) {
-            return String.join(System.lineSeparator(), outReader.lines().collect(toList()));
-        } catch (IOException e) {
-            //TODO
-            throw new RuntimeException(e);
-        }
+        String error = errorReader.getContent();
+        String output = outputReader.getContent();
+
+        return new CompilerResult(error, output, success);
     }
 
     private List<String> prepareCommandOptions(SolidityCompiler.Options... options) throws IOException {
@@ -106,4 +102,56 @@ public class SolidityCompiler {
         }
     }
 
+
+    private static class ParallelReader extends Thread {
+
+        private InputStream stream;
+        private String content;
+
+        //private StringBuilder content = new StringBuilder();
+
+        ParallelReader(InputStream stream) {
+            this.stream = stream;
+        }
+
+        public String getContent() {
+            return getContent(true);
+        }
+
+        public synchronized String getContent(boolean waitForComplete) {
+            if (waitForComplete) {
+                while (stream != null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            return content;
+        }
+
+        public void run() {
+
+            try (BufferedReader buffer = new BufferedReader(new InputStreamReader(stream))) {
+                content = buffer.lines().collect(Collectors.joining(System.lineSeparator()));
+            /*
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+
+                List<String> collect = reader.lines().collect(StringBuilder);
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                */
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } finally {
+                synchronized (this) {
+                    stream = null;
+                    notifyAll();
+                }
+            }
+        }
+    }
 }
