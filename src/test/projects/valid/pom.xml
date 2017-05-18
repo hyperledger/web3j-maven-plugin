@@ -22,7 +22,7 @@
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
                         <includes>
-                            <include>**/*.sol</include>
+                            <include>Greeter.sol</include>
                         </includes>
                     </soliditySourceFiles>
                 </configuration>
