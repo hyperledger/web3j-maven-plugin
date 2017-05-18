@@ -24,14 +24,22 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+/**
+ * Maven Plugin to generate the java classes out of the solidity contract files.
+ *
+ */
 @Mojo(name = "generate-sources",
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
 public class JavaClassGeneratorMojo extends AbstractMojo {
 
-    @Parameter(property = "packageName", defaultValue = "com.zuehlke.blockchain.model")
+    private static final String DEFAULT_INCLUDE = "**/*.sol";
+    private static final String DEFAULT_PACKAGE = "org.web3j.model";
+    private static final String DEFAULT_SOURCE_DESTINATION = "org.web3j.model";
+
+    @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
     protected String packageName;
 
-    @Parameter(property = "sourceDestination", defaultValue = "src/main/java")
+    @Parameter(property = "sourceDestination", defaultValue = DEFAULT_SOURCE_DESTINATION)
     protected String sourceDestination;
 
     @Parameter(property = "soliditySourceFiles", required = true)
@@ -39,12 +47,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         if (soliditySourceFiles.getDirectory() == null) {
-            getLog().info("No solidity directory specified, using mavenProject base directory.");
-            soliditySourceFiles.setDirectory(new File(Paths.get(".").toUri()).getAbsolutePath());
+            String absolutePath = new File(Paths.get(".").toUri()).getAbsolutePath();
+            getLog().info("No solidity directory specified, using current working directory [" + absolutePath + "]");
+            soliditySourceFiles.setDirectory(absolutePath);
         }
         if (soliditySourceFiles.getIncludes().size() == 0) {
-            getLog().info("No solidity includes specified, using the default (**/*.sol)");
-            soliditySourceFiles.setIncludes(Collections.singletonList("**/*.sol"));
+            getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
+            soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
         }
 
         for (String includedFile : new FileSetManager().getIncludedFiles(soliditySourceFiles)) {
@@ -55,24 +64,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void processContractFile(String includedFile) throws MojoExecutionException {
-        String result;
-        try {
-            getLog().debug("Compile '" + soliditySourceFiles.getDirectory() + File.separator + includedFile + "'");
-            result = parseSoliditySource(includedFile);
-            getLog().debug("Compiled '" + includedFile + "'");
-
-        } catch (IOException ioException) {
-            throw new MojoExecutionException("Could not compile files", ioException);
-        }
+        getLog().debug("\tCompile '" + soliditySourceFiles.getDirectory() + File.separator + includedFile + "'");
+        String result = parseSoliditySource(includedFile);
+        getLog().debug("\tCompiled '" + includedFile + "'");
 
         Map<String, Map<String, String>> contracts = extractContracts(result);
-
         for (String contractName : contracts.keySet()) {
-
             try {
-                getLog().debug("Build contract '" + contractName + "'");
                 generatedJavaClass(contracts, contractName);
-                getLog().debug("java class for contract '" + contractName + "' generated");
+                getLog().debug("\tBuilt Class for contract '" + contractName + "'");
             } catch (ClassNotFoundException | IOException ioException) {
                 getLog().error("Could not build java class for contract '" + contractName + "'", ioException);
             }
@@ -84,34 +84,38 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
             String script = "Java.asJSONCompatible(" + result + ")";
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
-            getLog().debug("Used solC Version: " + json.get("version"));
             return (Map<String, Map<String, String>>) json.get("contracts");
         } catch (ScriptException e) {
-            throw new MojoExecutionException("Could not parse SolC result");
+            throw new MojoExecutionException("Could not parse SolC result", e);
         }
     }
 
-    private String parseSoliditySource(String includedFile) throws IOException, MojoExecutionException {
-        byte[] contract = Files.readAllBytes(Paths.get(soliditySourceFiles.getDirectory(), includedFile));
-        CompilerResult result = SolidityCompiler.getInstance().compileSrc(
-                contract,
-                true,
-                true,
-                SolidityCompiler.Options.ABI,
-                SolidityCompiler.Options.BIN);
-        if (result.isFailed()) {
-            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+    private String parseSoliditySource(String includedFile) throws MojoExecutionException {
+        try {
+            byte[] contract = Files.readAllBytes(Paths.get(soliditySourceFiles.getDirectory(), includedFile));
+            CompilerResult result = SolidityCompiler.getInstance().compileSrc(
+                    contract,
+                    SolidityCompiler.Options.ABI,
+                    SolidityCompiler.Options.BIN,
+                    SolidityCompiler.Options.INTERFACE,
+                    SolidityCompiler.Options.METADATA
+                    );
+            if (result.isFailed()) {
+                throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+            }
+            getLog().debug("\t\tResult:\t" + result.output);
+            getLog().debug("\t\tError: \t" + result.errors);
+            return result.output;
+        } catch (IOException ioException) {
+            throw new MojoExecutionException("Could not compile files", ioException);
         }
-        getLog().debug("SolC Output:\t" + result.output);
-        getLog().debug("SolC Error:\t" + result.output);
-        return result.output;
     }
 
     private void generatedJavaClass(Map<String, Map<String, String>> result, String contractName) throws IOException, ClassNotFoundException {
         new SolidityFunctionWrapper().generateJavaFiles(
                 contractName,
-                result.get(contractName).get("bin"),
-                result.get(contractName).get("abi"),
+                result.get(contractName).get(SolidityCompiler.Options.BIN.getName()),
+                result.get(contractName).get(SolidityCompiler.Options.ABI.getName()),
                 sourceDestination,
                 packageName);
     }

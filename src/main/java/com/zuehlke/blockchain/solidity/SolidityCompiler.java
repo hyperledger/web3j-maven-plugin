@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Created by hem on 18.05.2017.
+ * Compiles the given Solidity Contracts into binary code.
+ *
  * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
  */
 public class SolidityCompiler {
@@ -26,13 +27,16 @@ public class SolidityCompiler {
         solc = new SolC();
     }
 
-    public CompilerResult compileSrc(byte[] source, boolean optimize, boolean combinedJson, SolidityCompiler.Options... options) throws IOException {
-        List<String> commandParts = prepareCommandOptions(optimize, combinedJson, options);
+    public CompilerResult compileSrc(
+            byte[] source, SolidityCompiler.Options... options)
+            throws IOException {
+        List<String> commandParts = prepareCommandOptions(options);
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                .inheritIO()
                 .directory(solc.getExecutable().getParentFile());
-        processBuilder.environment().put("LD_LIBRARY_PATH", solc.getExecutable().getParentFile().getCanonicalPath());
+        processBuilder
+                .environment()
+                .put("LD_LIBRARY_PATH", solc.getExecutable().getParentFile().getCanonicalPath());
 
         Process process = processBuilder.start();
 
@@ -48,6 +52,7 @@ public class SolidityCompiler {
         try {
             success = process.waitFor() == 0;
         } catch (InterruptedException e) {
+            //TODO
             throw new RuntimeException(e);
         }
         return new CompilerResult(error, output, success);
@@ -57,25 +62,17 @@ public class SolidityCompiler {
         try (BufferedReader outReader = new BufferedReader(new InputStreamReader(is))) {
             return String.join(System.lineSeparator(), outReader.lines().collect(toList()));
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO
+            throw new RuntimeException(e);
         }
-        return "";
     }
 
-    private List<String> prepareCommandOptions(boolean optimize, boolean combinedJson, SolidityCompiler.Options... options) throws IOException {
+    private List<String> prepareCommandOptions(SolidityCompiler.Options... options) throws IOException {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(solc.getExecutable().getCanonicalPath());
-        if (optimize) {
-            commandParts.add("--optimize");
-        }
-        if (combinedJson) {
-            commandParts.add("--combined-json");
-            commandParts.add(Arrays.stream(options).map(option1 -> option1.toString() ).collect(Collectors.joining(",")));
-        } else {
-            for (SolidityCompiler.Options option : options) {
-                commandParts.add("--" + option.getName());
-            }
-        }
+        commandParts.add("--optimize");
+        commandParts.add("--combined-json");
+        commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
         return commandParts;
     }
 
@@ -88,12 +85,10 @@ public class SolidityCompiler {
     }
 
     public enum Options {
-        AST("ast"),
         BIN("bin"),
         INTERFACE("interface"),
         ABI("abi"),
-        METADATA("metadata"),
-        ASTJSON("ast-json");
+        METADATA("metadata"),;
 
         private String name;
 

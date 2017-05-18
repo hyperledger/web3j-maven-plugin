@@ -8,14 +8,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.Scanner;
 
 /**
- * Created by hem on 18.05.2017.
- * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
+ * Wrapper class to the native solc execution on different platforms.
  *
+ * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
  */
 public class SolC {
 
     private File solc = null;
-
 
     SolC() {
         try {

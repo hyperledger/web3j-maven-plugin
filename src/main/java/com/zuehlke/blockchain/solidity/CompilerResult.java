@@ -1,7 +1,8 @@
 package com.zuehlke.blockchain.solidity;
 
 /**
- * Created by hem on 18.05.2017.
+ * Container for the compile result.
+ *
  */
 public class CompilerResult {
     public String errors;

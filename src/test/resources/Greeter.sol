@@ -1,3 +1,5 @@
+pragma solidity ^0.4.8;
+
 /* Example from https://www.ethereum.org/greeter */
 contract mortal {
     /* Define variable owner of the type address*/
