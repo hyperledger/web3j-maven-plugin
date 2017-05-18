@@ -1,6 +1,5 @@
 package com.zuehlke.blockchain;
 
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.After;
 import org.junit.Before;
@@ -12,27 +11,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class JavaClassGeneratorMojoTest {
 
     public static final String TEST_GENERATED_FOLDER = "src/test/generated";
-    private MavenProject mavenProject;
     private File executionDirectory;
 
     @Before
     public void setUp() throws Exception {
-        mavenProject = mock(MavenProject.class);
         executionDirectory = new File(Paths.get(".").toUri());
-        when(mavenProject.getBasedir()).thenReturn(executionDirectory);
     }
 
     @Test
     public void basicExecution() throws Exception {
-        JavaClassGeneratorMojo javaClassGenerator = new JavaClassGeneratorMojo("model", TEST_GENERATED_FOLDER, new FileSet(), mavenProject);
+        JavaClassGeneratorMojo javaClassGenerator = new JavaClassGeneratorMojo();
+        javaClassGenerator.packageName = "model";
+        javaClassGenerator.sourceDestination = TEST_GENERATED_FOLDER;
+        javaClassGenerator.soliditySourceFiles = new FileSet();
 
         javaClassGenerator.execute();
 
