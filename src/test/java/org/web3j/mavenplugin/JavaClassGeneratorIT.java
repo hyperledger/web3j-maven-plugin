@@ -1,4 +1,4 @@
-package com.zuehlke.blockchain;
+package org.web3j.mavenplugin;
 
 import org.apache.maven.plugin.testing.ConfigurationException;
 import org.apache.maven.plugin.testing.MojoRule;

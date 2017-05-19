@@ -13,7 +13,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.zuehlke.blockchain</groupId>
+                <groupId>org.web3j.mavenplugin</groupId>
                 <artifactId>web3j-maven-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <configuration>

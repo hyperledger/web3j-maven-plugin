@@ -1,4 +1,4 @@
-package com.zuehlke.blockchain.solidity;
+package org.web3j.mavenplugin.solidity;
 
 import org.junit.Test;
 

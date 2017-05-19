@@ -1,8 +1,8 @@
-package com.zuehlke.blockchain;
+package org.web3j.mavenplugin;
 
 
-import com.zuehlke.blockchain.solidity.CompilerResult;
-import com.zuehlke.blockchain.solidity.SolidityCompiler;
+import org.web3j.mavenplugin.solidity.CompilerResult;
+import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
