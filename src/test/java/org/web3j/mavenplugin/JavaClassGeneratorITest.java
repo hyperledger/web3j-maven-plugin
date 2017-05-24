@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class JavaClassGeneratorIT {
+public class JavaClassGeneratorITest {
 
     @Rule
     public MojoRule mojoRule = new MojoRule();
@@ -30,7 +30,6 @@ public class JavaClassGeneratorIT {
     @Test
     public void validPom() throws Exception {
         File pom = new File(resources.getBasedir("valid"), "pom.xml");
-
         assertNotNull(pom);
         assertTrue(pom.exists());
 
