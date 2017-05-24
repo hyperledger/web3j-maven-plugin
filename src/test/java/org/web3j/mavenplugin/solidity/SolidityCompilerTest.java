@@ -1,26 +1,56 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-//TODO
 public class SolidityCompilerTest {
 
-    @Test
-    public void compileSources() throws Exception {
-        SolidityCompiler solidityCompiler = SolidityCompiler.getInstance();
+    private SolidityCompiler solidityCompiler;
 
-        Path path = Paths.get("src/test/resources/Greeter.sol");
-        byte[] source = Files.readAllBytes(path);
+    @Before
+    public void loadCompiler(){
+        solidityCompiler = SolidityCompiler.getInstance();
+    }
+
+    @Test
+    public void compileContract() throws Exception {
+        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter.sol"));
 
         CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
-        assertNotNull(compilerResult.output);
+        assertFalse(compilerResult.isFailed());
+        assertTrue(compilerResult.errors.isEmpty());
+        assertFalse(compilerResult.output.isEmpty());
+
+        assertTrue(compilerResult.output.contains("\"greeter\""));
+    }
+
+    @Test
+    public void invalidContractVersion() throws Exception {
+        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter-invalid-version.sol"));
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertTrue(compilerResult.isFailed());
+        assertFalse(compilerResult.errors.isEmpty());
+        assertTrue(compilerResult.output.isEmpty());
+    }
+
+    @Test
+    public void invalidContractSyntax() throws Exception {
+        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter-invalid-syntax.sol"));
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertTrue(compilerResult.isFailed());
+        assertFalse(compilerResult.errors.isEmpty());
+        assertTrue(compilerResult.output.isEmpty());
     }
 
 }
