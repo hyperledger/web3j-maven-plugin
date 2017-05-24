@@ -16,9 +16,18 @@ public class SolC {
 
     private File solc = null;
 
+    private String canonicalPath;
+    private String canonicalWorkingDirectory;
+    private File workingDirectory;
+
     SolC() {
         try {
             initBundled();
+
+            canonicalPath = solc.getCanonicalPath();
+            canonicalWorkingDirectory = solc.getParentFile().getCanonicalPath();
+            workingDirectory = solc.getParentFile();
+
         } catch (IOException e) {
             throw new RuntimeException("Can't init solc compiler: ", e);
         }
@@ -57,8 +66,17 @@ public class SolC {
         }
     }
 
-    public File getExecutable() {
-        return solc;
+    public String getCanonicalPath(){
+        return canonicalPath;
     }
+
+    public String getCanonicalWorkingDirectory(){
+        return canonicalWorkingDirectory;
+    }
+
+    public File getWorkingDirectory(){
+        return workingDirectory;
+    }
+
 
 }

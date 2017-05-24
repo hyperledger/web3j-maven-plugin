@@ -2,9 +2,12 @@ package org.web3j.mavenplugin.solidity;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,46 +29,47 @@ public class SolidityCompiler {
     }
 
     public CompilerResult compileSrc(
-            byte[] source, SolidityCompiler.Options... options)
-            throws IOException {
-        List<String> commandParts = prepareCommandOptions(options);
+            byte[] source, SolidityCompiler.Options... options) {
+        String canonicalSolCPath = solc.getCanonicalPath();
+
+        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, options);
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                .directory(solc.getExecutable().getParentFile());
+                .directory(solc.getWorkingDirectory());
         processBuilder
                 .environment()
-                .put("LD_LIBRARY_PATH", solc.getExecutable().getParentFile().getCanonicalPath());
+                .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
 
-        Process process = processBuilder.start();
-
-        // Write Data into SolC
-        try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
-            stream.write(source);
-        }
-
-        ParallelReader errorReader = new ParallelReader(process.getErrorStream());
-        ParallelReader outputReader = new ParallelReader(process.getInputStream());
-        errorReader.start();
-        outputReader.start();
-
-
-        boolean success;
+        boolean success = false;
+        String error;
+        String output;
         try {
-            success = process.waitFor() == 0;
-        } catch (InterruptedException e) {
-            //TODO
-            throw new RuntimeException(e);
-        }
+            Process process = processBuilder.start();
+            try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
+                stream.write(source);
+            }
+            ParallelReader errorReader = new ParallelReader(process.getErrorStream());
+            ParallelReader outputReader = new ParallelReader(process.getInputStream());
+            errorReader.start();
+            outputReader.start();
 
-        String error = errorReader.getContent();
-        String output = outputReader.getContent();
+            success = process.waitFor() == 0;
+            error = errorReader.getContent();
+            output = outputReader.getContent();
+
+        } catch (IOException | InterruptedException e) {
+            StringWriter errorWriter = new StringWriter();
+            e.printStackTrace(new PrintWriter(errorWriter));
+            error = errorWriter.toString();
+            output = "";
+        }
 
         return new CompilerResult(error, output, success);
     }
 
-    private List<String> prepareCommandOptions(SolidityCompiler.Options... options) throws IOException {
+    private List<String> prepareCommandOptions(String canonicalSolCPath, SolidityCompiler.Options... options) {
         List<String> commandParts = new ArrayList<>();
-        commandParts.add(solc.getExecutable().getCanonicalPath());
+        commandParts.add(canonicalSolCPath);
         commandParts.add("--optimize");
         commandParts.add("--combined-json");
         commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
@@ -114,7 +118,7 @@ public class SolidityCompiler {
             this.stream = stream;
         }
 
-        public String getContent() {
+        public String getContent() throws InterruptedException {
             return getContent(true);
         }
 
@@ -124,7 +128,9 @@ public class SolidityCompiler {
                     try {
                         wait();
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        Thread.currentThread().interrupt();
+                        // we are being interrupted so we should stop running
+                        return null;
                     }
                 }
             }
@@ -135,17 +141,8 @@ public class SolidityCompiler {
 
             try (BufferedReader buffer = new BufferedReader(new InputStreamReader(stream))) {
                 content = buffer.lines().collect(Collectors.joining(System.lineSeparator()));
-            /*
-            }
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-
-                List<String> collect = reader.lines().collect(StringBuilder);
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-                */
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             } finally {
                 synchronized (this) {
                     stream = null;
