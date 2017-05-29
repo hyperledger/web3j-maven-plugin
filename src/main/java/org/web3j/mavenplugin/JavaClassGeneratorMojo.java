@@ -80,11 +80,11 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-            String script = "Java.asJSONCompatible(" + result + ")";
+            String script = "Java.asJSONCompatible('" + result + "')";
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
             return (Map<String, Map<String, String>>) json.get("contracts");
         } catch (ScriptException e) {
-            throw new MojoExecutionException("Could not parse SolC result", e);
+            throw new MojoExecutionException("Could not parse SolC result\nresult:" + result, e);
         }
     }
 
