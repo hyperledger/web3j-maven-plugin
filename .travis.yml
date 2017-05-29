@@ -5,13 +5,14 @@ jdk:
 
 sudo: false  # as per http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
 
-script: mvn clean verify cobertura:cobertura
+script: mvn clean test jacoco:report
 
 cache:
   directories:
     - '$HOME/.m2/repository'
 
 after_success:
+  - mvn coveralls:report
   - bash <(curl -s https://codecov.io/bash)
 
 after_failure:
