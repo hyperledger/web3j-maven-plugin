@@ -1,9 +1,6 @@
 package org.web3j.mavenplugin;
 
 
-import org.web3j.mavenplugin.solidity.CompilerResult;
-import org.web3j.mavenplugin.solidity.SolidityCompiler;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -12,6 +9,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.web3j.codegen.SolidityFunctionWrapper;
+import org.web3j.mavenplugin.solidity.CompilerResult;
+import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import javax.script.ScriptException;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
- *
  */
 @Mojo(name = "generate-sources",
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
@@ -99,10 +97,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                     SolidityCompiler.Options.BIN,
                     SolidityCompiler.Options.INTERFACE,
                     SolidityCompiler.Options.METADATA
-                    );
+            );
             if (result.isFailed()) {
                 throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
             }
+            if (result.output == null || result.output.isEmpty()) {
+                getLog().info("\t\tEmpty Output for file " + includedFile);
+                getLog().info("\t\tError: \t" + result.errors);
+            }
+
             getLog().debug("\t\tResult:\t" + result.output);
             getLog().debug("\t\tError: \t" + result.errors);
             return result.output;
