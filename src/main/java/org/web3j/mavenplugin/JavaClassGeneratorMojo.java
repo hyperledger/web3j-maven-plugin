@@ -80,11 +80,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-            String script = "Java.asJSONCompatible('" + result + "')";
+            String script = "JSON.parse(JSON.stringify(" + result + "))";
+//            String script = "Java.asJSONCompatible('" + result + "')"; //Java 8, Update 60 is needed for that. travis ci has jdk1.8_b31 installed
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
             return (Map<String, Map<String, String>>) json.get("contracts");
         } catch (ScriptException e) {
-            throw new MojoExecutionException("Could not parse SolC result\nresult:" + result, e);
+            throw new MojoExecutionException("Could not parse SolC result", e);
         }
     }
 
