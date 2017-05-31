@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
@@ -9,6 +11,7 @@
     <description>Mojo's web3j Maven plugin is used to create java classes based on the solidity
         contract files.
     </description>
+    <url>https://web3j.io</url>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -35,6 +38,8 @@
 
     <scm>
         <connection>scm:git:https://github.com/web3j/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:git@github.com:web3j/${project.artifactId}.git
+        </developerConnection>
         <url>https://github.com/${project.artifactId}.git</url>
         <tag>HEAD</tag>
     </scm>
