@@ -37,8 +37,7 @@
 
     <scm>
         <connection>scm:git:https://github.com/web3j/${project.artifactId}.git</connection>
-        <developerConnection>scm:git:git@github.com:web3j/${project.artifactId}.git</developerConnection>
-        <url>git@github.com:web3j/${project.artifactId}.git</url>
+        <url>https://github.com/${project.artifactId}.git</url>
         <tag>HEAD</tag>
     </scm>
 
