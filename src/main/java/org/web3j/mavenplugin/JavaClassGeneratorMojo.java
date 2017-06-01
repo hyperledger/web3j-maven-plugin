@@ -32,7 +32,8 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     private static final String DEFAULT_INCLUDE = "**/*.sol";
     private static final String DEFAULT_PACKAGE = "org.web3j.model";
-    private static final String DEFAULT_SOURCE_DESTINATION = "org.web3j.model";
+    private static final String DEFAULT_SOURCE_DESTINATION = "src/main/java";
+    private static final String DEFAULT_SOLIDITY_SOURCES = "src/main/resources";
 
     @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
     protected String packageName;
@@ -40,14 +41,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "sourceDestination", defaultValue = DEFAULT_SOURCE_DESTINATION)
     protected String sourceDestination;
 
-    @Parameter(property = "soliditySourceFiles", required = true)
+    @Parameter(property = "soliditySourceFiles")
     protected FileSet soliditySourceFiles;
 
     public void execute() throws MojoExecutionException {
         if (soliditySourceFiles.getDirectory() == null) {
-            String absolutePath = new File(Paths.get(".").toUri()).getAbsolutePath();
-            getLog().info("No solidity directory specified, using current working directory [" + absolutePath + "]");
-            soliditySourceFiles.setDirectory(absolutePath);
+            getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
+            soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
         }
         if (soliditySourceFiles.getIncludes().size() == 0) {
             getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
@@ -55,7 +55,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
 
         for (String includedFile : new FileSetManager().getIncludedFiles(soliditySourceFiles)) {
-            getLog().debug("process '" + includedFile + "'");
+            getLog().info("process '" + includedFile + "'");
             processContractFile(includedFile);
             getLog().debug("processed '" + includedFile + "'");
         }
@@ -70,7 +70,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         for (String contractName : contracts.keySet()) {
             try {
                 generatedJavaClass(contracts, contractName);
-                getLog().debug("\tBuilt Class for contract '" + contractName + "'");
+                getLog().info("\tBuilt Class for contract '" + contractName + "'");
             } catch (ClassNotFoundException | IOException ioException) {
                 getLog().error("Could not build java class for contract '" + contractName + "'", ioException);
             }
