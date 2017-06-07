@@ -44,6 +44,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "soliditySourceFiles")
     protected FileSet soliditySourceFiles;
 
+    @Parameter(property = "contract")
+    protected Contract contract;
+
     public void execute() throws MojoExecutionException {
         if (soliditySourceFiles.getDirectory() == null) {
             getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
@@ -68,6 +71,10 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
         Map<String, Map<String, String>> contracts = extractContracts(result);
         for (String contractName : contracts.keySet()) {
+            if (isFiltered(contractName)) {
+                getLog().debug("\tContract '" + contractName + "' is filtered");
+                continue;
+            }
             try {
                 generatedJavaClass(contracts, contractName);
                 getLog().info("\tBuilt Class for contract '" + contractName + "'");
@@ -122,5 +129,21 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 result.get(contractName).get(SolidityCompiler.Options.ABI.getName()),
                 sourceDestination,
                 packageName);
+    }
+
+    private boolean isFiltered(String contractName) {
+        if (contract == null) {
+            return false;
+        }
+
+        if (contract.getExcludes() != null && !contract.getExcludes().isEmpty()) {
+            return contract.getExcludes().contains(contractName);
+        }
+
+        if (contract.getIncludes() == null || contract.getIncludes().isEmpty()) {
+            return false;
+        } else {
+            return !contract.getIncludes().contains(contractName);
+        }
     }
 }

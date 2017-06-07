@@ -19,6 +19,14 @@
                 <version>0.1.2-SNAPSHOT</version>
                 <configuration>
                     <packageName>model</packageName>
+                    <contract>
+                        <includes>
+                            <include>greeter</include>
+                        </includes>
+                        <excludes>
+                            <exclude>mortal</exclude>
+                        </excludes>
+                    </contract>
                     <sourceDestination>src/test/generated</sourceDestination>
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
