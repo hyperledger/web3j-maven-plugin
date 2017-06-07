@@ -1,6 +1,5 @@
 package org.web3j.mavenplugin;
 
-import org.apache.maven.plugin.testing.ConfigurationException;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
 import org.junit.Rule;
@@ -14,11 +13,12 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class JavaClassGeneratorITest {
+public class JavaClassGeneratorFilterITest {
 
     @Rule
     public MojoRule mojoRule = new MojoRule();
@@ -30,8 +30,8 @@ public class JavaClassGeneratorITest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    public void pomStandard() throws Exception {
-        File pom = new File(resources.getBasedir("valid"), "pom.xml");
+    public void filteredContractInclude() throws Exception {
+        File pom = new File(resources.getBasedir("filtered"), "include.pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
 
@@ -43,14 +43,15 @@ public class JavaClassGeneratorITest {
 
         Path path = Paths.get(mojo.sourceDestination);
 
+
         List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
-        assertEquals("Greeter and Mortal Class", 2l, files.size());
+        assertThat(files.get(0).getFileName().toString(), is("Greeter.java"));
     }
 
 
     @Test
-    public void pomWithEmptyContract() throws Exception {
-        File pom = new File(resources.getBasedir("valid"), "empty.pom.xml");
+    public void filteredContractExclude() throws Exception {
+        File pom = new File(resources.getBasedir("filtered"), "exclude.pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
 
@@ -60,15 +61,17 @@ public class JavaClassGeneratorITest {
         mojo.sourceDestination = testFolder.getRoot().getPath();
         mojo.execute();
 
+
         Path path = Paths.get(mojo.sourceDestination);
 
         List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
-        assertEquals("no files in default value", 0l, files.size());
+        assertThat(files.get(0).getFileName().toString(), is("Mortal.java"));
     }
+
 
     @Test
-    public void pomWithoutConfiguration() throws Exception {
-        File pom = new File(resources.getBasedir("valid"), "default.pom.xml");
+    public void filteredContractMixed() throws Exception {
+        File pom = new File(resources.getBasedir("filtered"), "mixed.pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
 
@@ -81,20 +84,9 @@ public class JavaClassGeneratorITest {
         Path path = Paths.get(mojo.sourceDestination);
 
         List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
-        assertEquals("no files in default value", 0l, files.size());
+        assertThat(files.get(0).getFileName().toString(), is("Greeter.java"));
+
     }
 
-    @Test(expected = ConfigurationException.class)
-    public void invalidPom() throws Exception {
-        File pom = new File(resources.getBasedir("invalid"), "pom.xml");
 
-        assertNotNull(pom);
-        assertTrue(pom.exists());
-
-        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
-        assertNotNull(mojo);
-
-        mojo.execute();
-        // soliditySourceFiles is missing
-    }
 }
