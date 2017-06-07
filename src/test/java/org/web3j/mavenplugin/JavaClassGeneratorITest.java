@@ -32,7 +32,7 @@ public class JavaClassGeneratorITest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    public void defaultPom() throws Exception {
+    public void pomStandard() throws Exception {
         File pom = new File(resources.getBasedir("valid"), "pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
@@ -47,6 +47,43 @@ public class JavaClassGeneratorITest {
 
         List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
         assertEquals("Greeter and Mortal Class", 2l, files.size());
+    }
+
+
+    @Test
+    public void pomWithEmptyContract() throws Exception {
+        File pom = new File(resources.getBasedir("valid"), "empty.pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        assertEquals("no files in default value", 0l, files.size());
+    }
+
+    @Test
+    public void pomWithoutConfiguration() throws Exception {
+        File pom = new File(resources.getBasedir("valid"), "default.pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        assertEquals("no files in default value", 0l, files.size());
     }
 
     @Test(expected = ConfigurationException.class)
@@ -123,16 +160,5 @@ public class JavaClassGeneratorITest {
 
     }
 
-//
-//    @After
-//    public void removeTestFiles() throws IOException {
-//        if (sourceDestination != null && !sourceDestination.isEmpty()) {
-//            File file = new File(sourceDestination);
-//            Files.walk(file.toPath())
-//                    .map(Path::toFile)
-//                    .sorted((o1, o2) -> -o1.compareTo(o2)) //reversed order
-//                    .forEach(File::delete);
-//        }
-//    }
 
 }

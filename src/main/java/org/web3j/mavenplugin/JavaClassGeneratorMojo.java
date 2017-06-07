@@ -42,12 +42,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     protected String sourceDestination;
 
     @Parameter(property = "soliditySourceFiles")
-    protected FileSet soliditySourceFiles;
+    protected FileSet soliditySourceFiles = new FileSet();
 
     @Parameter(property = "contract")
     protected Contract contract;
 
     public void execute() throws MojoExecutionException {
+
         if (soliditySourceFiles.getDirectory() == null) {
             getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
             soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
@@ -70,6 +71,10 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         getLog().debug("\tCompiled '" + includedFile + "'");
 
         Map<String, Map<String, String>> contracts = extractContracts(result);
+        if (contracts == null) {
+            getLog().warn("\tNo Contract found for file '" + includedFile + "'");
+            return;
+        }
         for (String contractName : contracts.keySet()) {
             if (isFiltered(contractName)) {
                 getLog().debug("\tContract '" + contractName + "' is filtered");
@@ -108,10 +113,6 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             );
             if (result.isFailed()) {
                 throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
-            }
-            if (result.output == null || result.output.isEmpty()) {
-                getLog().info("\t\tEmpty Output for file " + includedFile);
-                getLog().info("\t\tError: \t" + result.errors);
             }
 
             getLog().debug("\t\tResult:\t" + result.output);
