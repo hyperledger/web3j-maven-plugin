@@ -38,9 +38,9 @@ The are several variable to select the solidity source files, define a source de
 | `<sourceDestination/>` | relativ or absolut path                        | `src/main/java`     |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html)  | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`   |
 
-## Example
+## Getting Started
 
-`pom.xml` `<plugin>` configuration:
+Create a standard java maven project. Add following `<plugin>` - configuration into the `pom.xml` file:
 
 ```xml
 <plugin>
@@ -60,8 +60,14 @@ The are several variable to select the solidity source files, define a source de
 </plugin>
 ```
 
-`mvn web3j:generate-sources` output
+Add your solidity contract files into the folder `src/main/resources`. Make sure that the solidity files ends with `.sol`.
+
+start the generating process:
+
+
 ```
+> mvn web3j:generate-sources
+
 [INFO] --- web3j-maven-plugin:0.1.2:generate-sources (default-cli) @ hotel-showcase ---
 [INFO] process 'HotelShowCaseProxy.sol'
 [INFO] 	Built Class for contract 'HotelShowCaseProxy'
@@ -77,6 +83,11 @@ The are several variable to select the solidity source files, define a source de
 
 Process finished with exit code 0
 ```
+
+You find the generated java classes inside the directory `src/main/java/generated/`.
+
+Next step is to interact with the smart contract. See for that [deploying and interacting with smart contracts](https://web3j.readthedocs.io/en/latest/smart_contracts.html#deploying-and-interacting-with-smart-contracts) in the official web3j documentation.
+
 
 ## Changelog
 ### 0.1.2
