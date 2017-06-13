@@ -46,7 +46,7 @@ The are several variable to select the solidity source files, define a source de
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -62,19 +62,25 @@ The are several variable to select the solidity source files, define a source de
 
 `mvn web3j:generate-sources` output
 ```
-[INFO] --- web3j-maven-plugin:0.1.1:generate-sources (default-cli) @ hotel-showcase ---
+[INFO] --- web3j-maven-plugin:0.1.2:generate-sources (default-cli) @ hotel-showcase ---
+[INFO] process 'HotelShowCaseProxy.sol'
+[INFO] 	Built Class for contract 'HotelShowCaseProxy'
+[INFO] 	Built Class for contract 'HotelShowCaseV2'
+[INFO] 	Built Class for contract 'Owned'
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 4.061 s
-[INFO] Finished at: 2017-06-01T10:42:45+02:00
-[INFO] Final Memory: 16M/261M
+[INFO] Total time: 4.681 s
+[INFO] Finished at: 2017-06-13T07:07:04+02:00
+[INFO] Final Memory: 14M/187M
 [INFO] ------------------------------------------------------------------------
 
 Process finished with exit code 0
 ```
 
-## Releases
+## Changelog
+### 0.1.2
+ * Better Contract Handling
 
 ### 0.1.1
  * Initial Release
