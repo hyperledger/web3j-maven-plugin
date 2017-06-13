@@ -14,7 +14,7 @@ The base configuration for the plugin will take the solidity files from `src/mai
         <plugin>
             <groupId>org.web3j</groupId>
             <artifactId>web3j-maven-plugin</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.2</version>
             <configuration>
                 <soliditySourceFiles/>
             </configuration>
