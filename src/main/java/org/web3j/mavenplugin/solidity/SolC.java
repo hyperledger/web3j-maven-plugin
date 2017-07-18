@@ -35,6 +35,9 @@ public class SolC {
 
     private void initBundled() throws IOException {
         File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
+        tmpDir.setReadable(true);
+        tmpDir.setWritable(true);
+        tmpDir.setExecutable(true);
         tmpDir.mkdirs();
 
         InputStream is = getClass().getResourceAsStream("/native/" + getOS() + "/solc/file.list");
