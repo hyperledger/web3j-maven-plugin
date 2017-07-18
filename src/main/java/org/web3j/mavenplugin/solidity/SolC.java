@@ -42,14 +42,16 @@ public class SolC {
         while (scanner.hasNext()) {
             String s = scanner.next();
             System.out.println("filename: " + s);
-            File targetFile = File.createTempFile("java-solc", s); //new File(tmpDir, s);
+            File targetFile = new File(tmpDir, s);
             InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            targetFile.setExecutable(true);
+            targetFile.setWritable(true);
+            targetFile.setReadable(true);
             if (solc == null) {
-                System.out.println("executable is: " + s);
                 // first file in the list denotes executable
                 solc = targetFile;
-                solc.setExecutable(true);
+                //solc.setExecutable(true);
             }
             targetFile.deleteOnExit();
         }
