@@ -47,6 +47,9 @@ public class SolC {
             File targetFile = new File(tmpDir, s);
             InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            if (getOS().equalsIgnoreCase("mac")) {
+                Runtime.getRuntime().exec("chmod u+x " + targetFile.getAbsolutePath());
+            }
             if (solc == null) {
                 // first file in the list denotes executable
                 solc = targetFile;
