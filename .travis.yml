@@ -1,17 +1,10 @@
 language: java
 
-jdk:
-  - oraclejdk8
+os:
+  - osx
 
-sudo: false  # as per http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
+osx_image: xcode8.3
 
-script: mvn clean test jacoco:report
+sudo: true
 
-cache:
-  directories:
-    - $HOME/.m2
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
-
-after_failure:
+script: mvn clean test
