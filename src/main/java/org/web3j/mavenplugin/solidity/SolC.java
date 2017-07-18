@@ -41,7 +41,6 @@ public class SolC {
         Scanner scanner = new Scanner(is);
         while (scanner.hasNext()) {
             String s = scanner.next();
-            System.out.println("filename: " + s);
             File targetFile = new File(tmpDir, s);
             InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
