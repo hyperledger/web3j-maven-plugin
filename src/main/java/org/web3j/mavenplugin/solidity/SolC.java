@@ -34,9 +34,7 @@ public class SolC {
     }
 
     private void initBundled() throws IOException {
-        //File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
-        // Hack for osx tests
-        File tmpDir = new File("/tmp", "solc");
+        File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
         tmpDir.mkdirs();
 
         InputStream is = getClass().getResourceAsStream("/native/" + getOS() + "/solc/file.list");
@@ -46,11 +44,10 @@ public class SolC {
             File targetFile = new File(tmpDir, s);
             InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            targetFile.setExecutable(true);
             if (solc == null) {
                 // first file in the list denotes executable
                 solc = targetFile;
-                //solc.setExecutable(true);
+                solc.setExecutable(true);
             }
             targetFile.deleteOnExit();
         }
