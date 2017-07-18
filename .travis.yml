@@ -5,6 +5,6 @@ os:
 
 osx_image: xcode8.3
 
-sudo: true
+sudo: false
 
-script: mvn clean test
+script: mvn clean test -e
