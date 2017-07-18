@@ -22,9 +22,12 @@ public class SolidityCompilerTest {
     public void compileContract() throws Exception {
         byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter.sol"));
 
+        System.out.println("=Loaded file===========");
+        System.out.println(new String(source));
+        System.out.println("=======================");
         CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
-        assertFalse(compilerResult.isFailed());
+        assertFalse(compilerResult.errors, compilerResult.isFailed());
         assertTrue(compilerResult.errors.isEmpty());
         assertFalse(compilerResult.output.isEmpty());
 
