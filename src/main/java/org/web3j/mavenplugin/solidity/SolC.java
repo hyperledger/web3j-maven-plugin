@@ -45,8 +45,6 @@ public class SolC {
             InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             targetFile.setExecutable(true);
-            targetFile.setWritable(true);
-            targetFile.setReadable(true);
             if (solc == null) {
                 // first file in the list denotes executable
                 solc = targetFile;
