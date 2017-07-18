@@ -1,8 +1,5 @@
 language: java
 
-jdk:
-  - oraclejdk7
-
 os:
   - osx
 
@@ -11,3 +8,8 @@ osx_image: xcode8.3
 sudo: false
 
 script: mvn clean test
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
