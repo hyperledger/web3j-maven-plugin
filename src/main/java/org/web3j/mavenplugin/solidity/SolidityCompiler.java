@@ -10,7 +10,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -39,21 +38,6 @@ public class SolidityCompiler {
         processBuilder
                 .environment()
                 .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
-
-        System.out.println("==processBuilder===========");
-        System.out.println("\tenvironment:");
-        for (Map.Entry<String, String> entry : processBuilder.environment().entrySet()) {
-            System.out.println("\t\t" + entry.getKey() + ":" + entry.getValue());
-        }
-        System.out.println("=============");
-
-
-        System.out.println("==SolC Info===========");
-        System.out.println("\t CanonicalPath()  : " + solc.getCanonicalPath());
-        System.out.println("\t AbsolutePath()   : " + solc.getWorkingDirectory().getAbsolutePath());
-        System.out.println("\t CanonWorkingDir(): " + solc.getCanonicalWorkingDirectory());
-        System.out.println("=============");
-
 
         boolean success = false;
         String error;
