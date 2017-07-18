@@ -41,16 +41,12 @@ public class SolC {
         tmpDir.mkdirs();
 
         String solcPath = "/native/" + getOS() + "/solc/";
-        System.out.println(solcPath);
         InputStream is = getClass().getResourceAsStream(solcPath + "file.list");
         Scanner scanner = new Scanner(is);
         while (scanner.hasNext()) {
             String s = scanner.next();
-            System.out.println(s);
             File targetFile = new File(tmpDir, s);
-            System.out.println(solcPath + s);
             InputStream fis = getClass().getResourceAsStream(solcPath + s);
-            System.out.println();
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             if (solc == null) {
                 // first file in the list denotes executable

@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.endsWith;
@@ -9,6 +10,18 @@ import static org.junit.Assert.assertTrue;
 
 public class SolCTest {
 
+    String osProperty;
+
+    @Before
+    public void storeSystemProperty() {
+        osProperty = System.getProperty("os.name");
+    }
+
+
+    @Before
+    public void resetSystemProperty() {
+        System.setProperty("os.name", osProperty);
+    }
 
     @Test
     public void initExecutable() {
