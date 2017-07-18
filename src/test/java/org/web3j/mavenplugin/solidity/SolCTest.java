@@ -18,7 +18,6 @@ public class SolCTest {
         osProperty = System.getProperty("os.name");
     }
 
-
     @After
     public void resetSystemProperty() {
         System.setProperty("os.name", osProperty);

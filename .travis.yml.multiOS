@@ -5,7 +5,19 @@ jdk:
 
 sudo: false  # as per http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
 
-script: mvn clean test jacoco:report
+os:
+  - linux
+  - osx
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode8.3
+
+
+script:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then mvn clean test fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then mvn clean test jacoco:report fi
 
 cache:
   directories:
