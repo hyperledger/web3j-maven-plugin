@@ -40,16 +40,18 @@ public class SolC {
         tmpDir.setExecutable(true);
         tmpDir.mkdirs();
 
-        InputStream is = getClass().getResourceAsStream("/native/" + getOS() + "/solc/file.list");
+        String solcPath = "/native/" + getOS() + "/solc/";
+        System.out.println(solcPath);
+        InputStream is = getClass().getResourceAsStream(solcPath + "file.list");
         Scanner scanner = new Scanner(is);
         while (scanner.hasNext()) {
             String s = scanner.next();
+            System.out.println(s);
             File targetFile = new File(tmpDir, s);
-            InputStream fis = getClass().getResourceAsStream("/native/" + getOS() + "/solc/" + s);
+            System.out.println(solcPath + s);
+            InputStream fis = getClass().getResourceAsStream(solcPath + s);
+            System.out.println();
             Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            if (getOS().equalsIgnoreCase("mac")) {
-                Runtime.getRuntime().exec("chmod u+x " + targetFile.getAbsolutePath());
-            }
             if (solc == null) {
                 // first file in the list denotes executable
                 solc = targetFile;
@@ -59,6 +61,7 @@ public class SolC {
         }
         tmpDir.deleteOnExit();
     }
+
 
     private String getOS() {
         String osName = System.getProperty("os.name").toLowerCase();
