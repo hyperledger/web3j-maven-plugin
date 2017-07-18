@@ -11,7 +11,9 @@ public class CompilerResult {
 
     public CompilerResult(String errors, String output, boolean success) {
         this.errors = errors;
-        this.output = output;
+        // https://ethereum.stackexchange.com/questions/11912/unable-to-define-greetercontract-in-the-greeter-tutorial-breaking-change-in-sol
+        this.output = output.replaceAll("<stdin>:", "");
+        ;
         this.success = success;
     }
 

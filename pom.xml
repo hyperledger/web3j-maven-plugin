@@ -67,12 +67,12 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>solcJ-all</artifactId>
-            <version>0.4.8</version>
+            <version>0.4.10</version>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
-            <version>2.2.1</version>
+            <version>2.2.2</version>
         </dependency>
 
         <dependency>
