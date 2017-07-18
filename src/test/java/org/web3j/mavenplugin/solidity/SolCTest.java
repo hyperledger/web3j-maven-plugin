@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class SolCTest {
 
-    String osProperty;
+    static String osProperty;
 
     @Before
     public void storeSystemProperty() {
@@ -18,7 +19,7 @@ public class SolCTest {
     }
 
 
-    @Before
+    @After
     public void resetSystemProperty() {
         System.setProperty("os.name", osProperty);
     }
