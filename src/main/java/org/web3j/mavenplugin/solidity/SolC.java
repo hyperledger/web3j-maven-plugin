@@ -34,7 +34,9 @@ public class SolC {
     }
 
     private void initBundled() throws IOException {
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
+        //File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
+        // Hack for osx tests
+        File tmpDir = new File("/tmp", "solc");
         tmpDir.mkdirs();
 
         InputStream is = getClass().getResourceAsStream("/native/" + getOS() + "/solc/file.list");
@@ -52,6 +54,7 @@ public class SolC {
             }
             targetFile.deleteOnExit();
         }
+        tmpDir.deleteOnExit();
     }
 
     private String getOS() {
@@ -67,15 +70,15 @@ public class SolC {
         }
     }
 
-    public String getCanonicalPath(){
+    public String getCanonicalPath() {
         return canonicalPath;
     }
 
-    public String getCanonicalWorkingDirectory(){
+    public String getCanonicalWorkingDirectory() {
         return canonicalWorkingDirectory;
     }
 
-    public File getWorkingDirectory(){
+    public File getWorkingDirectory() {
         return workingDirectory;
     }
 
