@@ -41,6 +41,7 @@ public class SolC {
         tmpDir.mkdirs();
 
         String solcPath = "/native/" + getOS() + "/solc/";
+        System.out.println("solcPath="+solcPath);
         InputStream is = getClass().getResourceAsStream(solcPath + "file.list");
         Scanner scanner = new Scanner(is);
         while (scanner.hasNext()) {

@@ -55,7 +55,7 @@ public class SolCTest {
 
     @Test
     public void loadExecutableOnLinux() {
-        System.setProperty("os.name", "af linux asdf");
+    	System.setProperty("os.name", "Linux");
 
         SolC solC = new SolC();
 

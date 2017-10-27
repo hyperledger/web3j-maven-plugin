@@ -124,7 +124,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void generatedJavaClass(Map<String, Map<String, String>> result, String contractName) throws IOException, ClassNotFoundException {
-        new SolidityFunctionWrapper().generateJavaFiles(
+        new SolidityFunctionWrapper(true).generateJavaFiles(
                 contractName,
                 result.get(contractName).get(SolidityCompiler.Options.BIN.getName()),
                 result.get(contractName).get(SolidityCompiler.Options.ABI.getName()),
