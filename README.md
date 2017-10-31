@@ -32,10 +32,11 @@ mvn web3j:generate-sources
 ## Configuration
 The are several variable to select the solidity source files, define a source destination path or change the package name.
 
-| Name                   | Format                                         | Default value       |
-| -----------------------|------------------------------------------------| --------------------|
-| `<packageName/>`       | valid java pacakge name                        | `org.web3j.model`   |
-| `<sourceDestination/>` | relativ or absolut path                        | `src/main/java`     |
+| Name                   | Format                                                | Default value       |
+| -----------------------|-------------------------------------------------------| --------------------|
+| `<packageName/>`       | valid java pacakge name                               | `org.web3j.model`   |
+| `<sourceDestination/>` | relativ or absolut path                               | `src/main/java`     |
+| `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types) | `true`              |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html)  | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`   |
 
 ## Getting Started
@@ -50,6 +51,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
+        <nativeJavaType>true</nativeJavaType>
         <soliditySourceFiles>
             <directory>src/main/resources</directory>
             <includes>
@@ -90,6 +92,10 @@ Next step is to interact with the smart contract. See for that [deploying and in
 
 
 ## Changelog
+### 0.1.3-SNAPSHOT
+ * Update Version
+ * Support of Native Java Types
+ 
 ### 0.1.2
  * Better Contract Handling
 

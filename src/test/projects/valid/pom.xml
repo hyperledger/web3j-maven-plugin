@@ -20,6 +20,7 @@
                 <configuration>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
+                    <nativeJavaType>true</nativeJavaType>
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
                         <includes>
