@@ -107,7 +107,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private String parseSoliditySource(String includedFile) throws MojoExecutionException {
         try {
             byte[] contract = Files.readAllBytes(Paths.get(soliditySourceFiles.getDirectory(), includedFile));
-            CompilerResult result = SolidityCompiler.getInstance().compileSrc(
+            CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
                     contract,
                     SolidityCompiler.Options.ABI,
                     SolidityCompiler.Options.BIN,

@@ -1,5 +1,7 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.apache.maven.plugin.logging.Log;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,29 +23,39 @@ public class SolidityCompiler {
 
     private SolC solc;
 
+    private Log LOG;
+
     private static SolidityCompiler INSTANCE;
 
-    private SolidityCompiler() {
-        solc = new SolC();
+    private SolidityCompiler(Log log) {
+        this.LOG = log;
+        if (!solidityCompilerExists()) {
+            LOG.info("Solidity Compiler from library is used");
+            solc = new SolC();
+        }
+    }
+
+    public static SolidityCompiler getInstance(Log log) {
+        if (INSTANCE == null) {
+            INSTANCE = new SolidityCompiler(log);
+        }
+        return INSTANCE;
     }
 
     public CompilerResult compileSrc(
             byte[] source, SolidityCompiler.Options... options) {
-        String canonicalSolCPath = solc.getCanonicalPath();
 
-        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, options);
-
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                .directory(solc.getWorkingDirectory());
-        processBuilder
-                .environment()
-                .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
 
         boolean success = false;
         String error;
         String output;
+        Process process;
+
         try {
-            Process process = processBuilder.start();
+            process = (solc != null)
+                    ? getSolCProcessFromLibrary(options)
+                    : getSolCProcessFromSystem(options);
+
             try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
                 stream.write(source);
             }
@@ -66,6 +78,28 @@ public class SolidityCompiler {
         return new CompilerResult(error, output, success);
     }
 
+    private Process getSolCProcessFromLibrary(Options[] options) throws IOException {
+        assert solc != null;
+
+        Process process;
+        String canonicalSolCPath = solc.getCanonicalPath();
+        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, options);
+        ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
+                .directory(solc.getWorkingDirectory());
+        processBuilder
+                .environment()
+                .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
+        process = processBuilder.start();
+        return process;
+    }
+
+    private Process getSolCProcessFromSystem(Options[] options) throws IOException {
+        Process process;
+        List<String> commandParts = prepareCommandOptions("solc", options);
+        process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
+        return process;
+    }
+
     private List<String> prepareCommandOptions(String canonicalSolCPath, SolidityCompiler.Options... options) {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(canonicalSolCPath);
@@ -75,12 +109,25 @@ public class SolidityCompiler {
         return commandParts;
     }
 
+    private boolean solidityCompilerExists() {
+        try {
+            Process p = Runtime.getRuntime().exec("solc --version");
 
-    public static SolidityCompiler getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new SolidityCompiler();
+            String output;
+            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
+                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+            if (p.waitFor() == 0) {
+                LOG.info("Solidity Compiler found");
+                LOG.debug(output);
+                return true;
+            } else {
+                LOG.error(output);
+            }
+        } catch (InterruptedException | IOException e) {
+            LOG.info("Solidity Compiler not installed.");
         }
-        return INSTANCE;
+        return false;
     }
 
     public enum Options {

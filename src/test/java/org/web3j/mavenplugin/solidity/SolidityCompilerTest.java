@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,22 +14,22 @@ public class SolidityCompilerTest {
 
     private SolidityCompiler solidityCompiler;
 
-    @Before
-    public void loadCompiler(){
-        solidityCompiler = SolidityCompiler.getInstance();
-    }
-
     @Test
     public void compileContract() throws Exception {
         byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter.sol"));
 
         CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
-        assertFalse(compilerResult.isFailed());
-        assertTrue(compilerResult.errors.isEmpty());
+        assertFalse(compilerResult.errors, compilerResult.isFailed());
+        assertTrue(compilerResult.errors, compilerResult.errors.isEmpty());
         assertFalse(compilerResult.output.isEmpty());
 
         assertTrue(compilerResult.output.contains("\"greeter\""));
+    }
+
+    @Before
+    public void loadCompiler() {
+        solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
     }
 
     @Test

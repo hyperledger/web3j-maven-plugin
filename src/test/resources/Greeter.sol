@@ -6,10 +6,10 @@ contract mortal {
     address owner;
 
     /* this function is executed at initialization and sets the owner of the contract */
-    function mortal() {owner = msg.sender;}
+    function mortal() public {owner = msg.sender;}
 
     /* Function to recover the funds on the contract */
-    function kill() {if (msg.sender == owner) selfdestruct(owner);}
+    function kill() public {if (msg.sender == owner) selfdestruct(owner);}
 }
 
 
@@ -23,7 +23,7 @@ contract greeter is mortal {
     }
 
     /* main function */
-    function greet() constant returns (string) {
+    function greet() public constant returns (string) {
         return greeting;
     }
 }
