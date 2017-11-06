@@ -47,7 +47,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.4</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -92,9 +92,12 @@ Next step is to interact with the smart contract. See for that [deploying and in
 
 
 ## Changelog
-### 0.1.3-SNAPSHOT
- * Update Version
- * Support of Native Java Types
+### 0.1.4
+ * Update Core Version
+
+### 0.1.3
+ * Update Core Version
+ * Support Java Native Type creation
  
 ### 0.1.2
  * Better Contract Handling
