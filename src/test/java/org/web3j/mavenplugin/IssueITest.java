@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@Ignore("works with solc version > 0.4.18")
 public class IssueITest {
 
     @Rule
@@ -31,7 +32,6 @@ public class IssueITest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    @Ignore("works with solc version > 0.4.18")
     public void issue9_library() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue9.pom.xml");
         assertNotNull(pom);
@@ -51,7 +51,6 @@ public class IssueITest {
     }
 
     @Test
-    @Ignore("works with solc version > 0.4.18")
     public void issue13_bigInteger() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue13.pom.xml");
         assertNotNull(pom);
