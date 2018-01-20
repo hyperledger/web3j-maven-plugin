@@ -6,8 +6,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.web3j.mavenplugin.solidity.CompilerResult;
-import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -54,6 +51,7 @@ public class IssueITest {
     }
 
     @Test
+    @Ignore("works with solc version > 0.4.18")
     public void issue13_bigInteger() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue13.pom.xml");
         assertNotNull(pom);
