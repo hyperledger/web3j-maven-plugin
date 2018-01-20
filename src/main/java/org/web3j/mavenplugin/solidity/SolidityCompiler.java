@@ -158,13 +158,11 @@ public class SolidityCompiler {
         private InputStream stream;
         private String content;
 
-        //private StringBuilder content = new StringBuilder();
-
         ParallelReader(InputStream stream) {
             this.stream = stream;
         }
 
-        public String getContent() throws InterruptedException {
+        public String getContent() {
             return getContent(true);
         }
 

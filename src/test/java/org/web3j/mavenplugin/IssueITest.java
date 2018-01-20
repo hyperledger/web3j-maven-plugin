@@ -1,11 +1,14 @@
 package org.web3j.mavenplugin;
 
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.web3j.mavenplugin.solidity.CompilerResult;
+import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -67,6 +71,16 @@ public class IssueITest {
         List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
         assertThat("Predictor is created", files.size(), is(1));
         assertThat(files.get(0).getFileName().toString(), is("Predictor.java"));
+    }
+
+    @Test
+    public void issue09() throws Exception {
+        SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
+        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/issue-09.sol"));
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertFalse(compilerResult.isFailed());
     }
 
 }
