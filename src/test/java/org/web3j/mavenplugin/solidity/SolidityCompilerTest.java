@@ -54,4 +54,14 @@ public class SolidityCompilerTest {
         assertTrue(compilerResult.output.isEmpty());
     }
 
+
+    @Test
+    public void issue09() throws Exception {
+        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/issue-09.sol"));
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertFalse(compilerResult.isFailed());
+    }
+
 }
