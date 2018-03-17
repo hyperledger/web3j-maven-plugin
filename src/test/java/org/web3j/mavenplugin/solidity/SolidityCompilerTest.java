@@ -1,14 +1,14 @@
 package org.web3j.mavenplugin.solidity;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
+import java.util.Set;
+
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class SolidityCompilerTest {
 
@@ -16,15 +16,15 @@ public class SolidityCompilerTest {
 
     @Test
     public void compileContract() throws Exception {
-        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter.sol"));
+        Set<String> source = Collections.singleton("src/test/resources/Greeter.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
         assertFalse(compilerResult.errors, compilerResult.isFailed());
         assertTrue(compilerResult.errors, compilerResult.errors.isEmpty());
         assertFalse(compilerResult.output.isEmpty());
 
-        assertTrue(compilerResult.output.contains("\"greeter\""));
+        assertTrue(compilerResult.output.contains("\"src/test/resources/Greeter.sol:greeter\""));
     }
 
     @Before
@@ -34,9 +34,9 @@ public class SolidityCompilerTest {
 
     @Test
     public void invalidContractVersion() throws Exception {
-        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter-invalid-version.sol"));
+        Set<String> source = Collections.singleton("src/test/resources/Greeter-invalid-version.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
         assertTrue(compilerResult.isFailed());
         assertFalse(compilerResult.errors.isEmpty());
@@ -45,9 +45,9 @@ public class SolidityCompilerTest {
 
     @Test
     public void invalidContractSyntax() throws Exception {
-        byte[] source = Files.readAllBytes(Paths.get("src/test/resources/Greeter-invalid-syntax.sol"));
+        Set<String> source = Collections.singleton("src/test/resources/Greeter-invalid-syntax.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc(source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
         assertTrue(compilerResult.isFailed());
         assertFalse(compilerResult.errors.isEmpty());
