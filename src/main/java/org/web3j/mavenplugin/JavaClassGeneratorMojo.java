@@ -3,6 +3,7 @@ package org.web3j.mavenplugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
+import org.web3j.utils.Files;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -64,7 +66,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
         if (files != null) {
             processContractFile(Stream.of(files)
-                .map(f -> soliditySourceFiles.getDirectory() + File.separator + f)
+                .map(f -> Paths.get(soliditySourceFiles.getDirectory(), f).toFile().getAbsolutePath())
                 .filter(f -> {
                     getLog().info("Adding to process '" + f + "'");
                     return true;})
@@ -108,8 +110,8 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             if (retMap != null) {
                 for (String key : retMap.keySet()) {
                     String[] splitted = key.split(":");
-                    if (splitted.length == 2) {
-                        retMap.put(splitted[1], retMap.remove(key));
+                    if (splitted.length > 1) {
+                        retMap.put(splitted[splitted.length -1 ], retMap.remove(key));
                     }
                 }
             }
