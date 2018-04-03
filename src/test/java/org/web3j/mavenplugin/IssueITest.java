@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -37,7 +36,6 @@ public class IssueITest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    @Ignore("works with solc version > 0.4.18")
     public void issue9_library() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue9.pom.xml");
         assertNotNull(pom);
@@ -57,7 +55,6 @@ public class IssueITest {
     }
 
     @Test
-    @Ignore("works with solc version > 0.4.18")
     public void issue13_bigInteger() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue13.pom.xml");
         assertNotNull(pom);
@@ -77,7 +74,6 @@ public class IssueITest {
     }
 
     @Test
-    @Ignore("works with solc version > 0.4.18")
     public void issue09() throws Exception {
         SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
         Set<String> sources = Collections.singleton("src/test/resources/issue-09.sol");

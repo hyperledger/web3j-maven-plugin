@@ -17,25 +17,16 @@
 				<groupId>org.web3j</groupId>
 				<artifactId>web3j-maven-plugin</artifactId>
 				<version>0.1.5-SNAPSHOT</version>
-<!-- 				<executions> -->
-<!-- 					<execution> -->
-<!-- 						<id>web3j-generate</id> -->
-<!-- 						<phase>process-resources</phase> -->
-<!-- 						<goals> -->
-<!-- 							<goal>generate-sources</goal> -->
-<!-- 						</goals> -->
-						<configuration>
-							<packageName>model</packageName>
-							<sourceDestination>src/test/generated</sourceDestination>
-							<soliditySourceFiles>
-								<directory>src/test/resources/issue-17</directory>
-								<includes>
-									<include>**/*.sol</include>
-								</includes>
-							</soliditySourceFiles>
-						</configuration>
-<!-- 					</execution> -->
-<!-- 				</executions> -->
+				<configuration>
+					<packageName>model</packageName>
+					<sourceDestination>src/test/generated</sourceDestination>
+					<soliditySourceFiles>
+						<directory>src/test/resources/issue-17</directory>
+						<includes>
+							<include>**/*.sol</include>
+						</includes>
+					</soliditySourceFiles>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

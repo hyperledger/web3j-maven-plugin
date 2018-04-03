@@ -63,12 +63,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
         String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
         if (files != null) {
-        	processContractFile(Stream.of(files).map(f -> soliditySourceFiles.getDirectory() + File.separator + f)
-            .filter(f -> {
-                getLog().info("Adding to process '" + f + "'");
-            	return true;
-            })
-            .collect(Collectors.toList()));
+            processContractFile(Stream.of(files)
+                .map(f -> soliditySourceFiles.getDirectory() + File.separator + f)
+                .filter(f -> {
+                    getLog().info("Adding to process '" + f + "'");
+                    return true;})
+                .collect(Collectors.toList()));
         }
     }
 
@@ -105,10 +105,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 //            String script = "Java.asJSONCompatible('" + result + "')"; //Java 8, Update 60 is needed for that. travis ci has jdk1.8_b31 installed
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
             Map<String, Map<String, String>> retMap = (Map<String, Map<String, String>>) json.get("contracts");
-            for (String key : retMap.keySet()) {
-                String[] splitted = key.split(":");
-                if (splitted.length == 2) {
-                    retMap.put(splitted[1], retMap.remove(key));
+            if (retMap != null) {
+                for (String key : retMap.keySet()) {
+                    String[] splitted = key.split(":");
+                    if (splitted.length == 2) {
+                        retMap.put(splitted[1], retMap.remove(key));
+                    }
                 }
             }
             return retMap;
@@ -119,6 +121,8 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
+        if (includedFiles == null || includedFiles.isEmpty())
+            return "{}";
         CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
                 soliditySourceFiles.getDirectory(),
                 includedFiles,
@@ -132,7 +136,11 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
 
         getLog().debug("\t\tResult:\t" + result.output);
-        getLog().debug("\t\tError: \t" + result.errors);
+        if (result.errors.contains("Warning:")) {
+            getLog().info("\tCompile Warning:\n" + result.errors);
+        } else {
+            getLog().debug("\t\tError: \t" + result.errors);
+        }
         return result.output;
     }
 
