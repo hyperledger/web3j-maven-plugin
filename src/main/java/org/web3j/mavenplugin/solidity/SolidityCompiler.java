@@ -1,18 +1,19 @@
 package org.web3j.mavenplugin.solidity;
 
-import org.apache.maven.plugin.logging.Log;
-
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * Compiles the given Solidity Contracts into binary code.
@@ -43,7 +44,8 @@ public class SolidityCompiler {
     }
 
     public CompilerResult compileSrc(
-            byte[] source, SolidityCompiler.Options... options) {
+            String rootDirectory, Collection<String> sources,
+            SolidityCompiler.Options... options) {
 
 
         boolean success = false;
@@ -53,12 +55,9 @@ public class SolidityCompiler {
 
         try {
             process = (solc != null)
-                    ? getSolCProcessFromLibrary(options)
-                    : getSolCProcessFromSystem(options);
+                    ? getSolCProcessFromLibrary(rootDirectory, sources, options)
+                    : getSolCProcessFromSystem(rootDirectory, sources, options);
 
-            try (BufferedOutputStream stream = new BufferedOutputStream(process.getOutputStream())) {
-                stream.write(source);
-            }
             ParallelReader errorReader = new ParallelReader(process.getErrorStream());
             ParallelReader outputReader = new ParallelReader(process.getInputStream());
             errorReader.start();
@@ -78,12 +77,12 @@ public class SolidityCompiler {
         return new CompilerResult(error, output, success);
     }
 
-    private Process getSolCProcessFromLibrary(Options[] options) throws IOException {
+    private Process getSolCProcessFromLibrary(String rootDirectory, Collection<String> sources, Options[] options) throws IOException {
         assert solc != null;
 
         Process process;
         String canonicalSolCPath = solc.getCanonicalPath();
-        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, options);
+        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, options);
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
         processBuilder
@@ -93,19 +92,22 @@ public class SolidityCompiler {
         return process;
     }
 
-    private Process getSolCProcessFromSystem(Options[] options) throws IOException {
+    private Process getSolCProcessFromSystem(String rootDirectory,Collection<String> sources, Options[] options) throws IOException {
         Process process;
-        List<String> commandParts = prepareCommandOptions("solc", options);
+        List<String> commandParts = prepareCommandOptions("solc", rootDirectory, sources, options);
         process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
         return process;
     }
 
-    private List<String> prepareCommandOptions(String canonicalSolCPath, SolidityCompiler.Options... options) {
+    private List<String> prepareCommandOptions(String canonicalSolCPath, String rootDirectory, Collection<String> sources, SolidityCompiler.Options... options) {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(canonicalSolCPath);
         commandParts.add("--optimize");
         commandParts.add("--combined-json");
         commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
+        commandParts.add("--allow-paths");
+        commandParts.add(Paths.get(rootDirectory).toFile().getAbsolutePath());
+        sources.forEach(f -> {commandParts.add(Paths.get(rootDirectory, f).toFile().getAbsolutePath());});
         return commandParts;
     }
 

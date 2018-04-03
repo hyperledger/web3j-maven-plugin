@@ -1,6 +1,17 @@
 package org.web3j.mavenplugin;
 
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -11,17 +22,6 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Map;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -60,22 +60,25 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
             soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
         }
-
-        for (String includedFile : new FileSetManager().getIncludedFiles(soliditySourceFiles)) {
-            getLog().info("process '" + includedFile + "'");
-            processContractFile(includedFile);
-            getLog().debug("processed '" + includedFile + "'");
+        String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
+        if (files != null) {
+            processContractFile(Stream.of(files)
+                .filter(f -> {
+                    getLog().info("Adding to process '" + f + "'");
+                    return true;})
+                .collect(Collectors.toList()));
         }
     }
 
-    private void processContractFile(String includedFile) throws MojoExecutionException {
-        getLog().debug("\tCompile '" + soliditySourceFiles.getDirectory() + File.separator + includedFile + "'");
-        String result = parseSoliditySource(includedFile);
-        getLog().debug("\tCompiled '" + includedFile + "'");
+    private void processContractFile(Collection<String> files) throws MojoExecutionException {
+        String result = parseSoliditySources(files);
+        processResult(result, "\tNo Contract found in files '" + files + "'");
+    }
 
+    private void processResult(String result, String warnMsg) throws MojoExecutionException {
         Map<String, Map<String, String>> contracts = extractContracts(result);
         if (contracts == null) {
-            getLog().warn("\tNo Contract found for file '" + includedFile + "'");
+            getLog().warn(warnMsg);
             return;
         }
         for (String contractName : contracts.keySet()) {
@@ -92,38 +95,71 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
             String script = "JSON.parse(JSON.stringify(" + result + "))";
 //            String script = "Java.asJSONCompatible('" + result + "')"; //Java 8, Update 60 is needed for that. travis ci has jdk1.8_b31 installed
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
-            return (Map<String, Map<String, String>>) json.get("contracts");
+            Map<String, Map<String, String>> retMap = (Map<String, Map<String, String>>) json.get("contracts");
+            Map<String, String> contractRemap = new HashMap<>();
+            if (retMap != null) {
+                for (String key : retMap.keySet()) {
+                  Map<String, String> metadata = retMap.get(key);
+                  getLog().debug("metadata:" + metadata.get("metadata"));
+                  String metadataScript = "JSON.parse(JSON.stringify(" + metadata.get("metadata") + "))";
+                  Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
+                  Object settingsMap = metadataJson.get("settings");
+                  if (settingsMap != null) {
+                    Object compilationTarget = ((Map<String, Object>)settingsMap).get("compilationTarget");
+                    if (compilationTarget != null) {
+                      for(Entry<String, String> kv: ((Map<String, String>)compilationTarget).entrySet()) {
+                        contractRemap.put(kv.getKey() + ":" + kv.getValue(), kv.getValue());
+                      }
+                    }
+                  }
+                  String newKey = contractRemap.get(key);
+                  if (newKey == null) {
+                    String[] splitted = key.split(":");
+                    if (splitted.length > 1) {
+                      newKey = splitted[splitted.length -1 ];
+                    } else {
+                      continue; 
+                    }
+                  }
+                  retMap.put(contractRemap.get(key), retMap.remove(key));
+                }
+            }
+            return retMap;
+            
         } catch (ScriptException e) {
             throw new MojoExecutionException("Could not parse SolC result", e);
         }
     }
 
-    private String parseSoliditySource(String includedFile) throws MojoExecutionException {
-        try {
-            byte[] contract = Files.readAllBytes(Paths.get(soliditySourceFiles.getDirectory(), includedFile));
-            CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
-                    contract,
-                    SolidityCompiler.Options.ABI,
-                    SolidityCompiler.Options.BIN,
-                    SolidityCompiler.Options.INTERFACE,
-                    SolidityCompiler.Options.METADATA
-            );
-            if (result.isFailed()) {
-                throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
-            }
-
-            getLog().debug("\t\tResult:\t" + result.output);
-            getLog().debug("\t\tError: \t" + result.errors);
-            return result.output;
-        } catch (IOException ioException) {
-            throw new MojoExecutionException("Could not compile files", ioException);
+    private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
+        if (includedFiles == null || includedFiles.isEmpty())
+            return "{}";
+        CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
+                soliditySourceFiles.getDirectory(),
+                includedFiles,
+                SolidityCompiler.Options.ABI,
+                SolidityCompiler.Options.BIN,
+                SolidityCompiler.Options.INTERFACE,
+                SolidityCompiler.Options.METADATA
+        );
+        if (result.isFailed()) {
+            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
         }
+
+        getLog().debug("\t\tResult:\t" + result.output);
+        if (result.errors.contains("Warning:")) {
+            getLog().info("\tCompile Warning:\n" + result.errors);
+        } else {
+            getLog().debug("\t\tError: \t" + result.errors);
+        }
+        return result.output;
     }
 
     private void generatedJavaClass(Map<String, Map<String, String>> result, String contractName) throws IOException, ClassNotFoundException {
