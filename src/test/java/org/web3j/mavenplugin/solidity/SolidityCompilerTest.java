@@ -16,7 +16,7 @@ public class SolidityCompilerTest {
 
     @Test
     public void compileContract() throws Exception {
-        Set<String> source = Collections.singleton("src/test/resources/Greeter.sol");
+        Set<String> source = Collections.singleton("Greeter.sol");
 
         CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
@@ -24,7 +24,7 @@ public class SolidityCompilerTest {
         assertTrue(compilerResult.errors, compilerResult.errors.isEmpty());
         assertFalse(compilerResult.output.isEmpty());
 
-        assertTrue(compilerResult.output.contains("\"src/test/resources/Greeter.sol:greeter\""));
+        assertTrue(compilerResult.output.contains("Greeter.sol:greeter\""));
     }
 
     @Before
@@ -34,7 +34,7 @@ public class SolidityCompilerTest {
 
     @Test
     public void invalidContractVersion() throws Exception {
-        Set<String> source = Collections.singleton("src/test/resources/Greeter-invalid-version.sol");
+        Set<String> source = Collections.singleton("Greeter-invalid-version.sol");
 
         CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
@@ -45,7 +45,7 @@ public class SolidityCompilerTest {
 
     @Test
     public void invalidContractSyntax() throws Exception {
-        Set<String> source = Collections.singleton("src/test/resources/Greeter-invalid-syntax.sol");
+        Set<String> source = Collections.singleton("Greeter-invalid-syntax.sol");
 
         CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 

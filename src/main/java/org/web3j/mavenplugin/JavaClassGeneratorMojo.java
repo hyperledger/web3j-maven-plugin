@@ -1,19 +1,17 @@
 package org.web3j.mavenplugin;
 
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -24,7 +22,6 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
-import org.web3j.utils.Files;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -66,7 +63,6 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
         if (files != null) {
             processContractFile(Stream.of(files)
-                .map(f -> Paths.get(soliditySourceFiles.getDirectory(), f).toFile().getAbsolutePath())
                 .filter(f -> {
                     getLog().info("Adding to process '" + f + "'");
                     return true;})
@@ -107,12 +103,32 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 //            String script = "Java.asJSONCompatible('" + result + "')"; //Java 8, Update 60 is needed for that. travis ci has jdk1.8_b31 installed
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
             Map<String, Map<String, String>> retMap = (Map<String, Map<String, String>>) json.get("contracts");
+            Map<String, String> contractRemap = new HashMap<>();
             if (retMap != null) {
                 for (String key : retMap.keySet()) {
+                  Map<String, String> metadata = retMap.get(key);
+                  getLog().debug("metadata:" + metadata.get("metadata"));
+                  String metadataScript = "JSON.parse(JSON.stringify(" + metadata.get("metadata") + "))";
+                  Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
+                  Object settingsMap = metadataJson.get("settings");
+                  if (settingsMap != null) {
+                    Object compilationTarget = ((Map<String, Object>)settingsMap).get("compilationTarget");
+                    if (compilationTarget != null) {
+                      for(Entry<String, String> kv: ((Map<String, String>)compilationTarget).entrySet()) {
+                        contractRemap.put(kv.getKey() + ":" + kv.getValue(), kv.getValue());
+                      }
+                    }
+                  }
+                  String newKey = contractRemap.get(key);
+                  if (newKey == null) {
                     String[] splitted = key.split(":");
                     if (splitted.length > 1) {
-                        retMap.put(splitted[splitted.length -1 ], retMap.remove(key));
+                      newKey = splitted[splitted.length -1 ];
+                    } else {
+                      continue; 
                     }
+                  }
+                  retMap.put(contractRemap.get(key), retMap.remove(key));
                 }
             }
             return retMap;

@@ -76,7 +76,7 @@ public class IssueITest {
     @Test
     public void issue09() throws Exception {
         SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
-        Set<String> sources = Collections.singleton("src/test/resources/issue-09.sol");
+        Set<String> sources = Collections.singleton("issue-09.sol");
 
         CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", sources, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
@@ -90,6 +90,29 @@ public class IssueITest {
         assertTrue(pom.exists());
 
         JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/17"), "generate-sources");
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<String> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).map(p -> p.toFile().getName().toString()).collect(Collectors.toList());
+        assertThat("Predictor is created", files.size(), is(5));
+        assertTrue(files.contains("Issue17import1.java"));
+        assertTrue(files.contains("Issue17import2.java"));
+        assertTrue(files.contains("Issue17relative1.java"));
+        assertTrue(files.contains("Issue17relative2.java"));
+        assertTrue(files.contains("Issue17main.java"));
+    }
+
+    @Test
+    public void issue17_1() throws Exception {
+        File pom = new File(resources.getBasedir("issue/17.1"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/17.1"), "generate-sources");
         assertNotNull(mojo);
 
         mojo.sourceDestination = testFolder.getRoot().getPath();

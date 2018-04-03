@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -105,8 +106,8 @@ public class SolidityCompiler {
         commandParts.add("--combined-json");
         commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
         commandParts.add("--allow-paths");
-        commandParts.add(rootDirectory);
-        commandParts.addAll(sources);
+        commandParts.add(Paths.get(rootDirectory).toFile().getAbsolutePath());
+        sources.forEach(f -> {commandParts.add(Paths.get(rootDirectory, f).toFile().getAbsolutePath());});
         return commandParts;
     }
 
