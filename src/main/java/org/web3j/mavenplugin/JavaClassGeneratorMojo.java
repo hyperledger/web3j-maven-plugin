@@ -84,12 +84,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
             String script = "JSON.parse(JSON.stringify(" + result + "))";
-//            String script = "Java.asJSONCompatible('" + result + "')"; //Java 8, Update 60 is needed for that. travis ci has jdk1.8_b31 installed
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
-            Map<String, Map<String, String>> retMap = (Map<String, Map<String, String>>) json.get("contracts");
+            Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
+            if (contracts == null) {
+                getLog().warn("no contracts found");
+                return null;
+            }
             Map<String, String> contractRemap = new HashMap<>();
-            for (String contractFilename : retMap.keySet()) {
-                Map<String, String> contractMetadata = retMap.get(contractFilename);
+            for (String contractFilename : contracts.keySet()) {
+                Map<String, String> contractMetadata = contracts.get(contractFilename);
                 getLog().debug("metadata:" + contractMetadata.get("metadata"));
                 String metadataScript = "JSON.parse(JSON.stringify(" + contractMetadata.get("metadata") + "))";
                 Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
@@ -98,17 +101,16 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                     Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
                     if (compilationTarget != null) {
                         for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
-                            String key = entry.getKey();
                             String value = entry.getValue();
-                            contractRemap.put(key + ":" + value, value);
+                            contractRemap.put(contractFilename, value);
                         }
                     }
                 }
-                Map<String, String> compiledContract = retMap.remove(contractFilename);
+                Map<String, String> compiledContract = contracts.remove(contractFilename);
                 String contractName = contractRemap.get(contractFilename);
-                retMap.put(contractName, compiledContract);
+                contracts.put(contractName, compiledContract);
             }
-            return retMap;
+            return contracts;
         } catch (ScriptException e) {
             throw new MojoExecutionException("Could not parse SolC result", e);
         }
