@@ -47,6 +47,24 @@ public class JavaClassGeneratorITest {
         assertEquals("Greeter and Mortal Class", 2l, files.size());
     }
 
+    @Test
+    public void pomWithImport() throws Exception {
+        File pom = new File(resources.getBasedir("import"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        assertEquals("Main, Upper and Util Class", 3, files.size());
+    }
+
 
     @Test
     public void pomWithEmptyContract() throws Exception {
