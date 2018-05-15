@@ -93,8 +93,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             Map<String, String> contractRemap = new HashMap<>();
             for (String contractFilename : contracts.keySet()) {
                 Map<String, String> contractMetadata = contracts.get(contractFilename);
-                getLog().debug("metadata:" + contractMetadata.get("metadata"));
-                String metadataScript = "JSON.parse(JSON.stringify(" + contractMetadata.get("metadata") + "))";
+                String metadata = contractMetadata.get("metadata");
+                if (metadata == null || metadata.length() == 0) {
+                  contracts.remove(contractFilename);
+                  continue;
+                } 
+                getLog().debug("metadata:" + metadata);
+                String metadataScript = "JSON.parse(JSON.stringify(" + metadata + "))";
                 Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
                 Object settingsMap = metadataJson.get("settings");
                 if (settingsMap != null) {
