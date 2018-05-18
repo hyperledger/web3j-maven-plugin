@@ -129,4 +129,23 @@ public class IssueITest {
         assertTrue(files.contains("Issue17main.java"));
     }
 
+    @Test
+    public void issue23() throws Exception {
+        File pom = new File(resources.getBasedir("issue/23"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/23"), "generate-sources");
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<String> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).map(p -> p.toFile().getName().toString()).collect(Collectors.toList());
+        assertThat("Predictor is created", files.size(), is(1));
+        assertTrue(files.contains("ChecImpl.java"));
+    }
+
 }
