@@ -1,11 +1,11 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.23;
 
 import "./sub/Util.sol";
 
 contract Main {
     address creator;
 
-    function Main() {
+    constructor () {
         creator = msg.sender;
     }
 
