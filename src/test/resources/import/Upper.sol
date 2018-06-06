@@ -1,9 +1,9 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 contract Upper {
     address creator;
 
-    function Upper() {
+    constructor () {
         creator = msg.sender;
     }
 

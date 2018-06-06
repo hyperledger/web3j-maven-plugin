@@ -5,7 +5,7 @@ import "../Issue17relative2.sol";
 contract Issue17relative1 {
     address creator;
 
-    function Issue17relative1() {
+    constructor() {
         creator = msg.sender;
     }
 }

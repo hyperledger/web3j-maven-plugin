@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 /**
  * 
@@ -7,7 +7,7 @@ pragma solidity ^0.4.18;
 contract Predictor {
 
     /* this runs when the contract is executed */
-    function Predictor() public {
+    constructor() public {
         // initialize the variables
     }
 

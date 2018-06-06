@@ -7,7 +7,7 @@ import "./pkg1/Issue17relative1.sol";
 contract Issue17main {
     address creator;
 
-    function Issue17main() {
+    constructor() {
         creator = msg.sender;
     }
 

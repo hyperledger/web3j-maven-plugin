@@ -3,7 +3,7 @@
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
 
     <name>web3j Maven Mojo</name>
     <description>Mojo's web3j Maven plugin is used to create java classes based on the solidity
@@ -16,7 +16,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <web3j.version>3.3.1</web3j.version>
+        <web3j.version>3.4.0</web3j.version>
+        <org.ethereum.solcJ>0.4.23</org.ethereum.solcJ>
+        <maven.shared.file-management.version>3.0.0</maven.shared.file-management.version>
     </properties>
 
     <licenses>
@@ -63,12 +65,12 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>file-management</artifactId>
-            <version>3.0.0</version>
+            <version>${maven.shared.file-management.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>solcJ-all</artifactId>
-            <version>0.4.19</version>
+            <version>${org.ethereum.solcJ}</version>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
