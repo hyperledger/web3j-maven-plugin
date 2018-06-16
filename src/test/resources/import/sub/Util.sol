@@ -5,7 +5,7 @@ import "../Upper.sol";
 contract Util {
     address creator;
 
-    function Util() {
+    constructor() {
         creator = msg.sender;
     }
 }
