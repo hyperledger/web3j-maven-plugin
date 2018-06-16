@@ -91,6 +91,10 @@ You find the generated java classes inside the directory `src/main/java/generate
 Next step is to interact with the smart contract. See for that [deploying and interacting with smart contracts](https://web3j.readthedocs.io/en/latest/smart_contracts.html#deploying-and-interacting-with-smart-contracts) in the official web3j documentation.
 
 
+For a multi module project configuration see following [post](https://github.com/web3j/web3j-maven-plugin/issues/14) from [@fcorneli](https://github.com/fcorneli). In short: 
+You need the build-helper-maven-plugin configuration too, else maven-compiler-plugin won't pick up the generated Java sources. Also, ${basedir} prefix is required within a multi-module project.
+
+
 ## Changelog
 ### 0.3.0
  * Support of imported Files ```import './other.sol';```
