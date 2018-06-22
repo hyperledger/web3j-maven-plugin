@@ -54,6 +54,7 @@ public class SolidityCompiler {
         Process process;
 
         try {
+            LOG.warn("Issue with travis [rootDirectory=" + rootDirectory + ",sources=" + sources.stream().collect(Collectors.joining(",")) + "],option=" + Arrays.stream(options).map(o -> o.toString()).collect(Collectors.joining(",")) + "]");
             process = (solc != null)
                     ? getSolCProcessFromLibrary(rootDirectory, sources, options)
                     : getSolCProcessFromSystem(rootDirectory, sources, options);
