@@ -96,7 +96,8 @@ public class SolidityCompiler {
 
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                .directory(solc.getWorkingDirectory());
+                //       .directory(solc.getWorkingDirectory())
+                ;
         processBuilder
                 .environment()
                 .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
