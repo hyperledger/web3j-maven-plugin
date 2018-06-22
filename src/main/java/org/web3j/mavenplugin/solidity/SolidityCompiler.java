@@ -89,8 +89,8 @@ public class SolidityCompiler {
         LOG.warn("Issue with travis [canonicalSolCPath=" + canonicalSolCPath
                 + ",commandParts=" + commandParts.stream().collect(Collectors.joining(","))
                 + "],getWorkingDirectory=" + solc.getWorkingDirectory().getAbsolutePath() + "]");
-        Files.newDirectoryStream(Paths.get(solc.getCanonicalWorkingDirectory()))
-                .forEach(file -> LOG.warn(file.toString()));
+
+        Files.list(solc.getWorkingDirectory().toPath()).forEach(file -> LOG.warn(file.toString()));
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
