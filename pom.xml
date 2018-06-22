@@ -12,8 +12,8 @@
     <url>https://web3j.io</url>
 
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <web3j.version>3.4.0</web3j.version>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>solcJ-all</artifactId>
-            <version>0.4.23</version>
+            <version>0.4.19</version>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
