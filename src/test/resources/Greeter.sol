@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.23;
 
 /* Example from https://www.ethereum.org/greeter */
 contract mortal {
