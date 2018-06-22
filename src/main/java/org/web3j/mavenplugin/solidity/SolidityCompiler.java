@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,7 +84,17 @@ public class SolidityCompiler {
 
         Process process;
         String canonicalSolCPath = solc.getCanonicalPath();
+
         List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, options);
+
+        LOG.warn("Issue with travis [canonicalSolCPath=" + canonicalSolCPath
+                + ",commandParts=" + commandParts.stream().collect(Collectors.joining(","))
+                + "],getWorkingDirectory=" + solc.getWorkingDirectory().getAbsolutePath() + "]");
+        Files.newDirectoryStream(Paths.get(solc.getCanonicalWorkingDirectory()))
+                .forEach(file -> LOG.warn(file.toString()));
+
+
+
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
         processBuilder
