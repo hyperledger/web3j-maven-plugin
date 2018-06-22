@@ -93,11 +93,8 @@ public class SolidityCompiler {
         Files.newDirectoryStream(Paths.get(solc.getCanonicalWorkingDirectory()))
                 .forEach(file -> LOG.warn(file.toString()));
 
-
-
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                //       .directory(solc.getWorkingDirectory())
-                ;
+                .directory(solc.getWorkingDirectory());
         processBuilder
                 .environment()
                 .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
