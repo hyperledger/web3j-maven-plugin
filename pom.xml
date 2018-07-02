@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>solcJ-all</artifactId>
-            <version>0.4.23</version>
+            <version>0.4.24</version>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
