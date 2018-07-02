@@ -96,6 +96,11 @@ You need the build-helper-maven-plugin configuration too, else maven-compiler-pl
 
 
 ## Changelog
+### 0.3.1
+ * Update to newest solcj version
+ * Update web3j version
+
+
 ### 0.3.0
  * Support of imported Files ```import './other.sol';```
  
