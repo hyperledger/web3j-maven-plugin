@@ -116,9 +116,7 @@ public class SolidityCompiler {
         commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
         commandParts.add("--allow-paths");
         commandParts.add(Paths.get(rootDirectory).toFile().getAbsolutePath());
-        sources.forEach(f -> {
-            commandParts.add(Paths.get(rootDirectory, f).toFile().getAbsolutePath());
-        });
+        sources.forEach(f -> commandParts.add(Paths.get(rootDirectory, f).toFile().getAbsolutePath()));
         return commandParts;
     }
 
