@@ -17,6 +17,7 @@
         <maven.version>3.5.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <web3j.version>3.4.0</web3j.version>
+        <solcJ.version>0.4.24</solcJ.version>
     </properties>
 
     <licenses>
@@ -68,7 +69,7 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>solcJ-all</artifactId>
-            <version>0.4.24</version>
+            <version>${solcJ.version}</version>
         </dependency>
         <dependency>
             <groupId>org.web3j</groupId>
