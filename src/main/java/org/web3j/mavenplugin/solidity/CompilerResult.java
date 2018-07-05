@@ -13,7 +13,6 @@ public class CompilerResult {
         this.errors = errors;
         // https://ethereum.stackexchange.com/questions/11912/unable-to-define-greetercontract-in-the-greeter-tutorial-breaking-change-in-sol
         this.output = output.replaceAll("<stdin>:", "");
-        ;
         this.success = success;
     }
 

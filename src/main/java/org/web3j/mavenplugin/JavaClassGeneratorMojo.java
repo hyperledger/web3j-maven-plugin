@@ -13,6 +13,8 @@ import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +52,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     @Parameter(property = "nativeJavaType", defaultValue = "true")
     protected boolean nativeJavaType;
+
+    @Parameter(property = "bin", defaultValue = "false")
+    protected boolean generateBIN;
+
+    @Parameter(property = "abi", defaultValue = "false")
+    protected boolean generateABI;
+
 
     public void execute() throws MojoExecutionException {
 
@@ -95,9 +104,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 Map<String, String> contractMetadata = contracts.get(contractFilename);
                 String metadata = contractMetadata.get("metadata");
                 if (metadata == null || metadata.length() == 0) {
-                  contracts.remove(contractFilename);
-                  continue;
-                } 
+                    contracts.remove(contractFilename);
+                    continue;
+                }
                 getLog().debug("metadata:" + metadata);
                 String metadataScript = "JSON.parse(JSON.stringify(" + metadata + "))";
                 Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
@@ -150,6 +159,41 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         processResult(result, "\tNo Contract found in files '" + files + "'");
     }
 
+    private void generatedAbi(Map<String, String> contractResult, String contractName) {
+        if (!generateABI) {
+            return;
+        }
+        String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
+
+        try {
+            Files.write(Paths.get(sourceDestination, packageName, contractName + ".json"), abiJson.getBytes());
+        } catch (IOException e) {
+            getLog().error("Could not build abi file for contract '" + contractName + "'", e);
+        }
+    }
+
+    private void generatedBin(Map<String, String> contractResult, String contractName) {
+        if (!generateBIN) {
+            return;
+        }
+
+        String binJson = contractResult.get(SolidityCompiler.Options.BIN.getName());
+        try {
+            Files.write(Paths.get(sourceDestination, packageName, contractName + ".bin"), binJson.getBytes());
+        } catch (IOException e) {
+            getLog().error("Could not build bin file for contract '" + contractName + "'", e);
+        }
+    }
+
+    private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {
+        new SolidityFunctionWrapper(nativeJavaType).generateJavaFiles(
+                contractName,
+                results.get(SolidityCompiler.Options.BIN.getName()),
+                results.get(SolidityCompiler.Options.ABI.getName()),
+                sourceDestination,
+                packageName);
+    }
+
     private void processResult(String result, String warnMsg) throws MojoExecutionException {
         Map<String, Map<String, String>> contracts = extractContracts(result);
         if (contracts == null) {
@@ -162,21 +206,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 continue;
             }
             try {
-                generatedJavaClass(contracts, contractName);
+                Map<String, String> contractResult = contracts.get(contractName);
+                generatedJavaClass(contractResult, contractName);
+                generatedAbi(contractResult, contractName);
+                generatedBin(contractResult, contractName);
                 getLog().info("\tBuilt Class for contract '" + contractName + "'");
             } catch (ClassNotFoundException | IOException ioException) {
                 getLog().error("Could not build java class for contract '" + contractName + "'", ioException);
             }
         }
-    }
-
-    private void generatedJavaClass(Map<String, Map<String, String>> result, String contractName) throws IOException, ClassNotFoundException {
-        new SolidityFunctionWrapper(nativeJavaType).generateJavaFiles(
-                contractName,
-                result.get(contractName).get(SolidityCompiler.Options.BIN.getName()),
-                result.get(contractName).get(SolidityCompiler.Options.ABI.getName()),
-                sourceDestination,
-                packageName);
     }
 
     private boolean isFiltered(String contractName) {

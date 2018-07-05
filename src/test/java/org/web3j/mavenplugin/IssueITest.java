@@ -36,25 +36,6 @@ public class IssueITest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    public void issue9_library() throws Exception {
-        File pom = new File(resources.getBasedir("issue"), "issue9.pom.xml");
-        assertNotNull(pom);
-        assertTrue(pom.exists());
-
-        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
-        assertNotNull(mojo);
-
-        mojo.sourceDestination = testFolder.getRoot().getPath();
-        mojo.execute();
-
-        Path path = Paths.get(mojo.sourceDestination);
-
-        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
-        assertThat("ConvertLib is created", files.size(), is(1));
-        assertThat(files.get(0).getFileName().toString(), is("ConvertLib.java"));
-    }
-
-    @Test
     public void issue13_bigInteger() throws Exception {
         File pom = new File(resources.getBasedir("issue"), "issue13.pom.xml");
         assertNotNull(pom);
@@ -68,19 +49,12 @@ public class IssueITest {
 
         Path path = Paths.get(mojo.sourceDestination);
 
-        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).collect(Collectors.toList());
+        List<Path> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .collect(Collectors.toList());
         assertThat("Predictor is created", files.size(), is(1));
         assertThat(files.get(0).getFileName().toString(), is("Predictor.java"));
-    }
-
-    @Test
-    public void issue09() {
-        SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
-        Set<String> sources = Collections.singleton("issue-09.sol");
-
-        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", sources, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
-
-        assertFalse(compilerResult.isFailed());
     }
 
     @Test
@@ -97,13 +71,27 @@ public class IssueITest {
 
         Path path = Paths.get(mojo.sourceDestination);
 
-        List<String> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).map(p -> p.toFile().getName().toString()).collect(Collectors.toList());
+        List<String> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(p -> p.toFile().getName())
+                .collect(Collectors.toList());
         assertThat("Predictor is created", files.size(), is(5));
         assertTrue(files.contains("Issue17import1.java"));
         assertTrue(files.contains("Issue17import2.java"));
         assertTrue(files.contains("Issue17relative1.java"));
         assertTrue(files.contains("Issue17relative2.java"));
         assertTrue(files.contains("Issue17main.java"));
+    }
+
+    @Test
+    public void issue09() {
+        SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
+        Set<String> sources = Collections.singleton("issue-09.sol");
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", sources, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertFalse(compilerResult.isFailed());
     }
 
     @Test
@@ -120,7 +108,11 @@ public class IssueITest {
 
         Path path = Paths.get(mojo.sourceDestination);
 
-        List<String> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).map(p -> p.toFile().getName().toString()).collect(Collectors.toList());
+        List<String> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(p -> p.toFile().getName())
+                .collect(Collectors.toList());
         assertThat("Predictor is created", files.size(), is(5));
         assertTrue(files.contains("Issue17import1.java"));
         assertTrue(files.contains("Issue17import2.java"));
@@ -143,9 +135,33 @@ public class IssueITest {
 
         Path path = Paths.get(mojo.sourceDestination);
 
-        List<String> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile()).map(p -> p.toFile().getName().toString()).collect(Collectors.toList());
+        List<String> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(p -> p.toFile().getName()).collect(Collectors.toList());
         assertThat("Predictor is created", files.size(), is(1));
         assertTrue(files.contains("ChecImpl.java"));
     }
 
+    @Test
+    public void issue9_library() throws Exception {
+        File pom = new File(resources.getBasedir("issue"), "issue9.pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .collect(Collectors.toList());
+        assertThat("ConvertLib is created", files.size(), is(1));
+        assertThat(files.get(0).getFileName().toString(), is("ConvertLib.java"));
+    }
 }
