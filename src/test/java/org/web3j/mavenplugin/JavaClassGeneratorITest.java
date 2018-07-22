@@ -39,6 +39,7 @@ public class JavaClassGeneratorITest {
         assertNotNull(mojo);
 
         mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
         mojo.execute();
 
         Path path = Paths.get(mojo.sourceDestination);
@@ -81,6 +82,7 @@ public class JavaClassGeneratorITest {
         assertNotNull(mojo);
 
         mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
         mojo.execute();
 
         Path path = Paths.get(mojo.sourceDestination);
