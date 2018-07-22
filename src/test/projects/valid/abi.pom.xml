@@ -21,7 +21,7 @@
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
                     <nativeJavaType>true</nativeJavaType>
-                    <!--   <outputFormat>java,abi,bin</outputFormat> -->
+                    <outputFormat>java,abi</outputFormat>
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
                         <includes>
