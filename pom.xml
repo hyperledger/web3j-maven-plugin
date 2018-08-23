@@ -16,7 +16,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <web3j.version>3.4.0</web3j.version>
+        <web3j.version>3.5.0</web3j.version>
         <solcJ.version>0.4.24</solcJ.version>
     </properties>
 
