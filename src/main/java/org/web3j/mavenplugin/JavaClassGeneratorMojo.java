@@ -168,12 +168,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
         //Create the ABI folder if it not preexists
         if(!Files.exists(Paths.get(abiDestination))) {
-        try {
-				  Files.createDirectories(Paths.get(abiDestination));
-			  } catch (IOException e) {
-				  getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
-			  }
-          
+		try {
+			Files.createDirectories(Paths.get(abiDestination));
+		} catch (IOException e) {
+			getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
+		}
+	} 
         try {
             Files.write(Paths.get(abiDestination, contractName + ".json"), abiJson.getBytes());
         } catch (IOException e) {
