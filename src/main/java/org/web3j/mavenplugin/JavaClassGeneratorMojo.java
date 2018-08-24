@@ -151,6 +151,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         processResult(result, "\tNo Contract found in files '" + files + "'");
     }
 
+    private Path createPath() throws IOException {
+        Path path = Paths.get(sourceDestination, packageName);
+
+        if (Files.notExists(path)) {
+            Files.createDirectories(path);
+        }
+        return path;
+    }
+
     private void generatedAbi(Map<String, String> contractResult, String contractName) {
         if (!StringUtils.containsIgnoreCase(outputFormat, "abi")) {
             return;
@@ -159,11 +168,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
         try {
             String filename = contractName + ".json";
-            Path path = Paths.get(sourceDestination, packageName);
-
-            if (Files.notExists(path)) {
-                Files.createDirectories(path);
-            }
+            Path path = createPath();
 
             Files.write(Paths.get(path.toString(), filename), abiJson.getBytes());
         } catch (IOException e) {
@@ -178,7 +183,10 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
         String binJson = contractResult.get(SolidityCompiler.Options.BIN.getName());
         try {
-            Files.write(Paths.get(sourceDestination, packageName, contractName + ".bin"), binJson.getBytes());
+            String filename = contractName + ".bin";
+            Path path = createPath();
+
+            Files.write(Paths.get(path.toString(), filename), binJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build bin file for contract '" + contractName + "'", e);
         }
