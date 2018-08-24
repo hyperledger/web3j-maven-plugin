@@ -141,7 +141,7 @@ public class JavaClassGeneratorITest {
         mojo.sourceDestination = testFolder.getRoot().getPath();
         mojo.execute();
 
-        Path path = Paths.get(mojo.sourceDestination);
+        Path path = Paths.get(mojo.abiDestination);
 
         List<Path> files = Files
                 .find(path, 99, (p, bfa) -> bfa.isRegularFile())

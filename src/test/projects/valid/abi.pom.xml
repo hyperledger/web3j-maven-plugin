@@ -18,6 +18,7 @@
                 <artifactId>web3j-maven-plugin</artifactId>
                 <version>0.3.2-SNAPSHOT</version>
                 <configuration>
+                	<abiDestination>target/abi</abiDestination>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
                     <nativeJavaType>true</nativeJavaType>

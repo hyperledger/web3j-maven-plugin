@@ -34,12 +34,16 @@ import javax.script.ScriptException;
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
 public class JavaClassGeneratorMojo extends AbstractMojo {
 
+	private static final String DEFAULT_ABI_DESTINATION = "target/abi";
     private static final String DEFAULT_INCLUDE = "**/*.sol";
     private static final String DEFAULT_PACKAGE = "org.web3j.model";
     private static final String DEFAULT_SOURCE_DESTINATION = "src/main/java";
     private static final String DEFAULT_SOLIDITY_SOURCES = "src/main/resources";
     private static final String DEFAULT_OUTPUT_FORMAT = "java";
 
+    @Parameter(property = "abiDestination", alias="abiDestination", defaultValue = DEFAULT_ABI_DESTINATION)
+    protected String abiDestination;
+    
     @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
     protected String packageName;
 
@@ -136,7 +140,6 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
         }
 
-        getLog().debug("\t\tResult:\t" + result.output);
         if (result.errors.contains("Warning:")) {
             getLog().info("\tCompile Warning:\n" + result.errors);
         } else {
@@ -156,8 +159,19 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
         String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
 
+        //Create the ABI folder if it not preexists
+        System.out.println("abiDestination="+abiDestination);
+        if(!Files.exists(Paths.get(abiDestination))) {
+        	try {
+				Files.createDirectories(Paths.get(abiDestination));
+			} catch (IOException e) {
+				getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
+			}
+        }
+        
         try {
-            Files.write(Paths.get(sourceDestination, packageName, contractName + ".json"), abiJson.getBytes());
+        	 System.out.println("contractName="+contractName + ".json");
+            Files.write(Paths.get(abiDestination, contractName + ".json"), abiJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build abi file for contract '" + contractName + "'", e);
         }
