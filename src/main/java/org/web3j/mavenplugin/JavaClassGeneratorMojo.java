@@ -1,6 +1,7 @@
 package org.web3j.mavenplugin;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -38,6 +39,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private static final String DEFAULT_SOURCE_DESTINATION = "src/main/java";
     private static final String DEFAULT_SOLIDITY_SOURCES = "src/main/resources";
     private static final String DEFAULT_ABI_DESTINATION = "target/main/abi";
+    private static final String DEFAULT_OUTPUT_FORMAT = "java";
 
     @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
     protected String packageName;
@@ -63,6 +65,8 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "abi", alias = "abi", defaultValue = "false")
     protected boolean generateABI;
 
+    @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
+    protected String outputFormat;
 
     public void execute() throws MojoExecutionException {
 
@@ -84,18 +88,11 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                     })
                     .collect(Collectors.toList()));
         }
-		/*
-        for (String includedFile : new FileSetManager().getIncludedFiles(soliditySourceFiles)) {
-            getLog().info("process '" + includedFile + "'");
-            processContractFile(includedFile);
-            getLog().debug("processed '" + includedFile + "'");
-        }
-		*/
     }
 
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+            ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
             String script = "JSON.parse(JSON.stringify(" + result + "))";
             Map<String, Object> json = (Map<String, Object>) engine.eval(script);
             Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
@@ -164,29 +161,28 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void generatedAbi(Map<String, String> contractResult, String contractName) {
-    	if (!generateABI) {
+    	  if (!StringUtils.containsIgnoreCase(outputFormat, "abi")) {
             return;
         }
         String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
-        
+
         //Create the ABI folder if it not preexists
         if(!Files.exists(Paths.get(abiDestination))) {
-        	try {
-				Files.createDirectories(Paths.get(abiDestination));
-			} catch (IOException e) {
-				getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
-			}
-        }
-        
         try {
-        	Files.write(Paths.get(abiDestination, contractName + ".json"), abiJson.getBytes());
+				  Files.createDirectories(Paths.get(abiDestination));
+			  } catch (IOException e) {
+				  getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
+			  }
+          
+        try {
+            Files.write(Paths.get(abiDestination, contractName + ".json"), abiJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build abi file for contract '" + contractName + "'", e);
         }
     }
 
     private void generatedBin(Map<String, String> contractResult, String contractName) {
-        if (!generateBIN) {
+        if (!StringUtils.containsIgnoreCase(outputFormat, "bin")) {
             return;
         }
 
@@ -199,6 +195,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {
+        if (!StringUtils.containsIgnoreCase(outputFormat, "java")) {
+            return;
+        }
         new SolidityFunctionWrapper(nativeJavaType).generateJavaFiles(
                 contractName,
                 results.get(SolidityCompiler.Options.BIN.getName()),
