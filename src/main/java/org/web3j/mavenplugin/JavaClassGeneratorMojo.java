@@ -15,6 +15,7 @@ import org.web3j.mavenplugin.solidity.SolidityCompiler;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,7 +158,14 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
 
         try {
-            Files.write(Paths.get(sourceDestination, packageName, contractName + ".json"), abiJson.getBytes());
+            String filename = contractName + ".json";
+            Path path = Paths.get(sourceDestination, packageName);
+
+            if (Files.notExists(path)) {
+                Files.createDirectories(path);
+            }
+
+            Files.write(Paths.get(path.toString(), filename), abiJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build abi file for contract '" + contractName + "'", e);
         }
