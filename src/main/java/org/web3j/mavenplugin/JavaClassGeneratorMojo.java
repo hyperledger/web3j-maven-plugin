@@ -38,6 +38,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private static final String DEFAULT_PACKAGE = "org.web3j.model";
     private static final String DEFAULT_SOURCE_DESTINATION = "src/main/java";
     private static final String DEFAULT_SOLIDITY_SOURCES = "src/main/resources";
+    private static final String DEFAULT_ABI_DESTINATION = "target/main/abi";
     private static final String DEFAULT_OUTPUT_FORMAT = "java";
 
     @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
@@ -45,6 +46,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     @Parameter(property = "sourceDestination", defaultValue = DEFAULT_SOURCE_DESTINATION)
     protected String sourceDestination;
+    
+    @Parameter(property = "abiDestination", defaultValue = DEFAULT_ABI_DESTINATION)
+    protected String abiDestination;
 
     @Parameter(property = "soliditySourceFiles")
     protected FileSet soliditySourceFiles = new FileSet();
@@ -54,6 +58,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     @Parameter(property = "nativeJavaType", defaultValue = "true")
     protected boolean nativeJavaType;
+
+    @Parameter(property = "bin", defaultValue = "false")
+    protected boolean generateBIN;
+
+    @Parameter(property = "abi", alias = "abi", defaultValue = "false")
+    protected boolean generateABI;
 
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
@@ -151,13 +161,21 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void generatedAbi(Map<String, String> contractResult, String contractName) {
-        if (!StringUtils.containsIgnoreCase(outputFormat, "abi")) {
+    	  if (!StringUtils.containsIgnoreCase(outputFormat, "abi")) {
             return;
         }
         String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
 
+        //Create the ABI folder if it not preexists
+        if(!Files.exists(Paths.get(abiDestination))) {
+		try {
+			Files.createDirectories(Paths.get(abiDestination));
+		} catch (IOException e) {
+			getLog().error("Could not create destination abi folder '" + abiDestination + "'", e);
+		}
+	} 
         try {
-            Files.write(Paths.get(sourceDestination, packageName, contractName + ".json"), abiJson.getBytes());
+            Files.write(Paths.get(abiDestination, contractName + ".json"), abiJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build abi file for contract '" + contractName + "'", e);
         }
@@ -170,7 +188,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
         String binJson = contractResult.get(SolidityCompiler.Options.BIN.getName());
         try {
-            Files.write(Paths.get(sourceDestination, packageName, contractName + ".bin"), binJson.getBytes());
+            Files.write(Paths.get(sourceDestination, packageName.replace(".", "/"), contractName + ".bin"), binJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build bin file for contract '" + contractName + "'", e);
         }
