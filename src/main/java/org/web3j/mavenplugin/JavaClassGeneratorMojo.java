@@ -47,6 +47,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "sourceDestination", defaultValue = DEFAULT_SOURCE_DESTINATION)
     protected String sourceDestination;
 
+    @Parameter(property = "outputDirectory")
+    protected SourceDestination outputDirectory = new SourceDestination();
+
     @Parameter(property = "soliditySourceFiles")
     protected FileSet soliditySourceFiles = new FileSet();
 
@@ -59,26 +62,13 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
 
-    public void execute() throws MojoExecutionException {
+    private Path createPath(String destinationPath) throws IOException {
+        Path path = Paths.get(destinationPath, packageName);
 
-        if (soliditySourceFiles.getDirectory() == null) {
-            getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
-            soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
+        if (Files.notExists(path)) {
+            Files.createDirectories(path);
         }
-        if (soliditySourceFiles.getIncludes().size() == 0) {
-            getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
-            soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
-        }
-
-        String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
-        if (files != null) {
-            processContractFile(Stream.of(files)
-                    .filter(f -> {
-                        getLog().info("Adding to process '" + f + "'");
-                        return true;
-                    })
-                    .collect(Collectors.toList()));
-        }
+        return path;
     }
 
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
@@ -151,25 +141,37 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         processResult(result, "\tNo Contract found in files '" + files + "'");
     }
 
-    private Path createPath() throws IOException {
-        Path path = Paths.get(sourceDestination, packageName);
+    public void execute() throws MojoExecutionException {
 
-        if (Files.notExists(path)) {
-            Files.createDirectories(path);
+        if (soliditySourceFiles.getDirectory() == null) {
+            getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
+            soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
         }
-        return path;
+        if (soliditySourceFiles.getIncludes().isEmpty()) {
+            getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
+            soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
+        }
+
+        String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
+        if (files != null) {
+            processContractFile(Stream.of(files)
+                    .filter(f -> {
+                        getLog().info("Adding to process '" + f + "'");
+                        return true;
+                    })
+                    .collect(Collectors.toList()));
+        }
     }
 
     private void generatedAbi(Map<String, String> contractResult, String contractName) {
         if (!StringUtils.containsIgnoreCase(outputFormat, "abi")) {
             return;
         }
-        String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
 
+        String abiJson = contractResult.get(SolidityCompiler.Options.ABI.getName());
         try {
             String filename = contractName + ".json";
-            Path path = createPath();
-
+            Path path = createPath(StringUtils.defaultString(outputDirectory.getAbi(), sourceDestination));
             Files.write(Paths.get(path.toString(), filename), abiJson.getBytes());
         } catch (IOException e) {
             getLog().error("Could not build abi file for contract '" + contractName + "'", e);
@@ -184,7 +186,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         String binJson = contractResult.get(SolidityCompiler.Options.BIN.getName());
         try {
             String filename = contractName + ".bin";
-            Path path = createPath();
+            Path path = createPath(StringUtils.defaultString(outputDirectory.getBin(), sourceDestination));
 
             Files.write(Paths.get(path.toString(), filename), binJson.getBytes());
         } catch (IOException e) {
@@ -200,7 +202,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 contractName,
                 results.get(SolidityCompiler.Options.BIN.getName()),
                 results.get(SolidityCompiler.Options.ABI.getName()),
-                sourceDestination,
+                StringUtils.defaultString(outputDirectory.getJava(), sourceDestination),
                 packageName);
     }
 
