@@ -35,10 +35,16 @@ The are several variable to select the solidity source files, define a source de
 | Name                   | Format                                                                                 | Default value      |
 | -----------------------|----------------------------------------------------------------------------------------| -------------------|
 | `<packageName/>`       | valid java pacakge name                                                                | `org.web3j.model`  |
+| `<outputDirectory><java/></outputDirectory>`   | relativ or absolut path for Java file                          |                    |
+| `<outputDirectory><bin/></outputDirectory>`   | relativ or absolut path for Bin file                          |                    |
+| `<outputDirectory><abi/></outputDirectory>`   | relativ or absolut path for ABI file                          |                    |
 | `<sourceDestination/>` | relativ or absolut path                                                                | `src/main/java`    |
 | `<outputFormat/>`      | generate Java Classes(`java`), ABI(`abi`) and/or BIN (`bin`) Files (commaseparated)    | `java`             |
 | `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types)                                  | `true`             |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`   |
+
+Configuration of `outputDirectory` has priority over `sourceDestination`
+
 
 ## Getting Started
 
@@ -48,7 +54,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>0.3.5</version>
+    <version>0.3.6-SNAPSHOT</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -60,6 +66,11 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
                 <include>**/*.sol</include>
             </includes>
         </soliditySourceFiles>
+        <outputDirectory>
+            <java>src/java/generated</java>
+            <bin>src/bin/generated</bin>
+            <abi>src/abi/generated</abi>
+        </outputDirectory>
     </configuration>
 </plugin>
 ```
@@ -98,6 +109,9 @@ You need the build-helper-maven-plugin configuration too, else maven-compiler-pl
 
 
 ## Changelog
+### 0.3.6
+ * Destination Directory for ABI, BIN and Java can be different
+ 
 ### 0.3.5
  * Generate and Store ABI & BIN Files
  * Update to 3.5.0 web3j core version
