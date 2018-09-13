@@ -36,10 +36,10 @@ The are several variable to select the solidity source files, define a source de
 | Name                   | Format                                                                                 | Default value                   |
 | -----------------------|----------------------------------------------------------------------------------------| --------------------------------|
 | `<packageName/>`       | valid java package name                                                                | `org.web3j.model`               |
-| `<outputDirectory><java/></outputDirectory>` | relative or absolute path for the generated for 'Java files      | value in `<sourceDestination/>` |
-| `<outputDirectory><bin/></outputDirectory>`  | relative or absolute path for the generated for 'Bin' files      | value in `<sourceDestination/>` |
-| `<outputDirectory><abi/></outputDirectory>`  | relative or absolute path for the generated for 'ABI' files      | value in `<sourceDestination/>` |
-| `<sourceDestination/>` | relativ or absolut path                                                                | `src/main/java`                 |
+| `<outputDirectory><java/></outputDirectory>` | relative or absolute path of the generated for 'Java files       | value in `<sourceDestination/>` |
+| `<outputDirectory><bin/></outputDirectory>`  | relative or absolute path of the generated for 'Bin' files       | value in `<sourceDestination/>` |
+| `<outputDirectory><abi/></outputDirectory>`  | relative or absolute path of the generated for 'ABI' files       | value in `<sourceDestination/>` |
+| `<sourceDestination/>` | relative or absolute path of the generated files (java, bin, abi)                      | `src/main/java`                 |
 | `<outputFormat/>`      | generate Java Classes(`java`), ABI(`abi`) and/or BIN (`bin`) Files (comma separated)   | `java`                          |
 | `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types)                                  | `true`                          |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`   |
