@@ -183,4 +183,50 @@ public class JavaClassGeneratorITest {
         assertEquals("no files in default value", 2, bin.size());
     }
 
+
+    @Test
+    public void pomWithAbiBin_differentFolder() throws Exception {
+        File pom = new File(resources.getBasedir("valid"), "different.destination.pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        String tempPath = testFolder.getRoot().getPath();
+        mojo.outputDirectory.setJava(
+                tempPath + File.separator + mojo.outputDirectory.getJava()
+        );
+
+        mojo.outputDirectory.setAbi(
+                tempPath + File.separator + mojo.outputDirectory.getAbi()
+        );
+
+        mojo.outputDirectory.setBin(
+                tempPath + File.separator + mojo.outputDirectory.getBin()
+        );
+
+        mojo.execute();
+
+        Path path = Paths.get(tempPath);
+
+        List<Path> json = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("json"))
+                .collect(Collectors.toList());
+        assertEquals("no files in default value", 2, json.size());
+
+        List<Path> bin = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("bin"))
+                .collect(Collectors.toList());
+        assertEquals("no files in default value", 2, bin.size());
+
+        List<Path> java = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .collect(Collectors.toList());
+        assertEquals("no files in default value", 2, java.size());
+
+    }
 }
