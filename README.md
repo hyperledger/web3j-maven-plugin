@@ -115,7 +115,11 @@ within a multi-module project.
 
 
 ## Changelog
-### 0.3.6-SNAPSHOT
+### 0.3.7-SNAPSHOT
+
+### 0.3.6
+ * Update to 0.4.25 solcj version
+ * Update to 3.5.0 web3j core version
  * Destination Directory for ABI, BIN and Java can be different
  
 ### 0.3.5
