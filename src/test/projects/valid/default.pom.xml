@@ -16,7 +16,7 @@
             <plugin>
                 <groupId>org.web3j</groupId>
                 <artifactId>web3j-maven-plugin</artifactId>
-                <version>0.3.7</version>
+                <version>4.0.3</version>
                 <configuration/>
             </plugin>
         </plugins>

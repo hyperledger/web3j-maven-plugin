@@ -15,7 +15,7 @@ the java classes into the folder `src/main/java`.
         <plugin>
             <groupId>org.web3j</groupId>
             <artifactId>web3j-maven-plugin</artifactId>
-            <version>0.3.7</version>
+            <version>4.0.3</version>
             <configuration>
                 <soliditySourceFiles/>
             </configuration>
@@ -55,7 +55,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>0.3.7</version>
+    <version>4.0.3</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -115,7 +115,8 @@ within a multi-module project.
 
 
 ## Changelog
-### 0.3.8-SNAPSHOT
+### 4.0.3
+ * Bringing all web3j-related projects up to the same build number to reduce confusion
 
 ### 0.3.7
  * Update to 0.4.25 solcj version
