@@ -42,7 +42,8 @@ The are several variable to select the solidity source files, define a source de
 | `<sourceDestination/>` | relative or absolute path of the generated files (java, bin, abi)                      | `src/main/java`                 |
 | `<outputFormat/>`      | generate Java Classes(`java`), ABI(`abi`) and/or BIN (`bin`) Files (comma separated)   | `java`                          |
 | `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types)                                  | `true`                          |
-| `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`   |
+| `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`  |
+| `<contract>`           | Filter (`<include>` or `<exclude>`) contracts based on the name.                       | `<contract>`<br>`  <includes>`<br>`    <include>greeter</include>`<br>`  </includes>`<br>`  <excludes>`<br>`    <exclude>mortal</exclude>`<br>`  <excludes>`<br>`</contracts>`  |
 
 Configuration of `outputDirectory` has priority over `sourceDestination`
 
@@ -72,6 +73,14 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
             <bin>src/bin/generated</bin>
             <abi>src/abi/generated</abi>
         </outputDirectory>
+        <contract>
+            <includes>
+                <include>greeter</include>
+            </includes>
+            <excludes>
+                <exclude>mortal</exclude>
+            </excludes>
+        </contract>
     </configuration>
 </plugin>
 ```
