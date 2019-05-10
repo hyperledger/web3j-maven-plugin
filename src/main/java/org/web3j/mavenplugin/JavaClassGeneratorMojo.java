@@ -93,6 +93,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 String metadataScript = "JSON.parse(JSON.stringify(" + metadata + "))";
                 Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
                 Object settingsMap = metadataJson.get("settings");
+                // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
                 if (settingsMap != null) {
                     Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
                     if (compilationTarget != null) {

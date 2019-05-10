@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity >=0.4.19 <0.6.0;
 
 /**
  * 
@@ -12,7 +12,7 @@ contract Predictor {
     }
 
     // returns an int array by adding to all its elements a scalar value "a"
-    function subtractScalar(int[] self, int a) public pure returns (int[] s) {
+    function subtractScalar(int[] memory self, int a) public pure returns (int[] memory s) {
         s = new int[](self.length);
         for (uint i = 0; i < self.length; i++)
             s[i] = self[i] - a;
