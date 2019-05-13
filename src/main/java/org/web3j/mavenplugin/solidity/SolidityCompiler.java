@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Compiles the given Solidity Contracts into binary code.
@@ -46,6 +48,7 @@ public class SolidityCompiler {
 
     public CompilerResult compileSrc(
             String rootDirectory, Collection<String> sources,
+            String[] pathPrefixes,
             SolidityCompiler.Options... options) {
 
 
@@ -56,8 +59,8 @@ public class SolidityCompiler {
 
         try {
             process = (solc != null)
-                    ? getSolCProcessFromLibrary(rootDirectory, sources, options)
-                    : getSolCProcessFromSystem(rootDirectory, sources, options);
+                    ? getSolCProcessFromLibrary(rootDirectory, sources, pathPrefixes, options)
+                    : getSolCProcessFromSystem(rootDirectory, sources, pathPrefixes, options);
 
             ParallelReader errorReader = new ParallelReader(process.getErrorStream());
             ParallelReader outputReader = new ParallelReader(process.getInputStream());
@@ -78,16 +81,16 @@ public class SolidityCompiler {
         return new CompilerResult(error, output, success);
     }
 
-    private Process getSolCProcessFromLibrary(String rootDirectory, Collection<String> sources, Options[] options) throws IOException {
+    private Process getSolCProcessFromLibrary(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
         assert solc != null;
 
         Process process;
         String canonicalSolCPath = solc.getCanonicalPath();
 
-        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, options);
+        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, pathPrefixes, options);
 
         LOG.warn("Issue with travis [canonicalSolCPath=" + canonicalSolCPath
-                + ",commandParts=" + commandParts.stream().collect(Collectors.joining(","))
+                + ",commandParts=" + String.join(",", commandParts)
                 + "],getWorkingDirectory=" + solc.getWorkingDirectory().getAbsolutePath() + "]");
 
         Files.list(solc.getWorkingDirectory().toPath()).forEach(file -> LOG.warn(file.toString()));
@@ -101,23 +104,43 @@ public class SolidityCompiler {
         return process;
     }
 
-    private Process getSolCProcessFromSystem(String rootDirectory, Collection<String> sources, Options[] options) throws IOException {
+    private Process getSolCProcessFromSystem(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
         Process process;
-        List<String> commandParts = prepareCommandOptions("solc", rootDirectory, sources, options);
+        List<String> commandParts = prepareCommandOptions("solc", rootDirectory, sources, pathPrefixes, options);
         process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
         return process;
     }
 
-    private List<String> prepareCommandOptions(String canonicalSolCPath, String rootDirectory, Collection<String> sources, SolidityCompiler.Options... options) {
+    private List<String> prepareCommandOptions(String canonicalSolCPath, String rootDirectory, Collection<String> sources, String[] pathPrefixes, SolidityCompiler.Options... options) {
         List<String> commandParts = new ArrayList<>();
         commandParts.add(canonicalSolCPath);
         commandParts.add("--optimize");
         commandParts.add("--combined-json");
-        commandParts.add(Arrays.stream(options).map(option -> option.toString()).collect(Collectors.joining(",")));
+        commandParts.add(Arrays.stream(options).map(Options::toString).collect(Collectors.joining(",")));
         commandParts.add("--allow-paths");
-        commandParts.add(Paths.get(rootDirectory).toFile().getAbsolutePath());
-        sources.forEach(f -> commandParts.add(Paths.get(rootDirectory, f).toFile().getAbsolutePath()));
+        Map<String, String> absolutePathPrefixes = Stream.of(pathPrefixes)
+                .map(pathPrefix -> replaceMakePathPrefixAbsolute(rootDirectory, pathPrefix))
+                .collect(Collectors.toMap(p -> p[0], p -> p[1]));
+        String allowedPaths = Stream.concat(
+                Stream.of(rootDirectory).map(this::toAbsolutePath),
+                absolutePathPrefixes.values().stream()
+        ).collect(Collectors.joining(","));
+        commandParts.add(allowedPaths);
+        absolutePathPrefixes.entrySet().stream()
+                .map(entry->entry.getKey()+"="+entry.getValue())
+                .forEach(commandParts::add);
+        sources.forEach(f -> commandParts.add( toAbsolutePath(rootDirectory, f)));
         return commandParts;
+    }
+
+    private String toAbsolutePath(String baseDirectory, String... subDirectories) {
+        return Paths.get(baseDirectory, subDirectories).normalize().toFile().getAbsolutePath();
+    }
+
+    String[] replaceMakePathPrefixAbsolute(String baseDirectory, String pathPrefix) {
+        String[] prefixAndPath = pathPrefix.split("=", 2);
+        prefixAndPath[1] = toAbsolutePath(baseDirectory, prefixAndPath[1]);
+        return prefixAndPath;
     }
 
     private boolean solidityCompilerExists() {

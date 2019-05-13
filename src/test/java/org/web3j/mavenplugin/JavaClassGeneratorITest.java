@@ -94,6 +94,53 @@ public class JavaClassGeneratorITest {
         assertEquals("Main, Upper and Util Class", 3, files.size());
     }
 
+
+    @Test
+    public void pomWithImportWithPath() throws Exception {
+        File pom = new File(resources.getBasedir("import-with-path"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .collect(Collectors.toList());
+        assertEquals("Main and Dependency Class", 2, files.size());
+    }
+
+
+
+    @Test
+    public void pomWithImportWithPathWithSpaces() throws Exception {
+        File pom = new File(resources.getBasedir("import-with-path-with-spaces"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .collect(Collectors.toList());
+        assertEquals("Main and Dependency Class", 2, files.size());
+    }
+
     @Test
     public void pomWithoutConfiguration() throws Exception {
         File pom = new File(resources.getBasedir("valid"), "default.pom.xml");
