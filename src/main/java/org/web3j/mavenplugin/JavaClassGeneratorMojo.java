@@ -59,6 +59,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "nativeJavaType", defaultValue = "true")
     protected boolean nativeJavaType;
 
+    @Parameter(property = "pathPrefixes")
+    protected String[] pathPrefixes = new String[0];
+
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
 
@@ -72,44 +75,39 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
-        try {
-            ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
-            String script = "JSON.parse(JSON.stringify(" + result + "))";
-            Map<String, Object> json = (Map<String, Object>) engine.eval(script);
-            Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
-            if (contracts == null) {
-                getLog().warn("no contracts found");
-                return null;
+        JsonParser jsonParser = new JsonParser();
+        Map<String, Object> json = jsonParser.parseJson(result);
+        Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
+        if (contracts == null) {
+            getLog().warn("no contracts found");
+            return null;
+        }
+        Map<String, String> contractRemap = new HashMap<>();
+        for (String contractFilename : contracts.keySet()) {
+            Map<String, String> contractMetadata = contracts.get(contractFilename);
+            String metadata = contractMetadata.get("metadata");
+            if (metadata == null || metadata.length() == 0) {
+                contracts.remove(contractFilename);
+                continue;
             }
-            Map<String, String> contractRemap = new HashMap<>();
-            for (String contractFilename : contracts.keySet()) {
-                Map<String, String> contractMetadata = contracts.get(contractFilename);
-                String metadata = contractMetadata.get("metadata");
-                if (metadata == null || metadata.length() == 0) {
-                    contracts.remove(contractFilename);
-                    continue;
-                }
-                getLog().debug("metadata:" + metadata);
-                String metadataScript = "JSON.parse(JSON.stringify(" + metadata + "))";
-                Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
-                Object settingsMap = metadataJson.get("settings");
-                if (settingsMap != null) {
-                    Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
-                    if (compilationTarget != null) {
-                        for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
-                            String value = entry.getValue();
-                            contractRemap.put(contractFilename, value);
-                        }
+            getLog().debug("metadata:" + metadata);
+            Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
+            Object settingsMap = metadataJson.get("settings");
+            // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
+            if (settingsMap != null) {
+                Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
+                if (compilationTarget != null) {
+                    for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
+                        String value = entry.getValue();
+                        contractRemap.put(contractFilename, value);
                     }
                 }
-                Map<String, String> compiledContract = contracts.remove(contractFilename);
-                String contractName = contractRemap.get(contractFilename);
-                contracts.put(contractName, compiledContract);
             }
-            return contracts;
-        } catch (ScriptException e) {
-            throw new MojoExecutionException("Could not parse SolC result", e);
+            Map<String, String> compiledContract = contracts.remove(contractFilename);
+            String contractName = contractRemap.get(contractFilename);
+            contracts.put(contractName, compiledContract);
         }
+        return contracts;
     }
 
     private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
@@ -118,6 +116,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
                 soliditySourceFiles.getDirectory(),
                 includedFiles,
+                pathPrefixes,
                 SolidityCompiler.Options.ABI,
                 SolidityCompiler.Options.BIN,
                 SolidityCompiler.Options.INTERFACE,

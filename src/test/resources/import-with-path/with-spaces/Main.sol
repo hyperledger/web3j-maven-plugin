@@ -1,6 +1,6 @@
 pragma solidity >=0.4.23 <0.6.0;
 
-import "./sub/Util.sol";
+import "dep spaced/Dependency.sol";
 
 contract Main {
     address creator;

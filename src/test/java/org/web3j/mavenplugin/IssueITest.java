@@ -90,7 +90,7 @@ public class IssueITest {
         SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
         Set<String> sources = Collections.singleton("issue-09.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", sources, SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", sources, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
         assertFalse(compilerResult.isFailed());
     }
