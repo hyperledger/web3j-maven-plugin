@@ -11,16 +11,12 @@
 
     <name>Mojo Test Project</name>
 
-
-    <properties>
-        <dependency-folder>../dependencies</dependency-folder>
-    </properties>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.web3j</groupId>
                 <artifactId>web3j-maven-plugin</artifactId>
-                <version>4.0.3-SNAPSHOT</version>
+                <version>4.2.1-SNAPSHOT</version>
                 <configuration>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
