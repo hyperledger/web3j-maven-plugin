@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.23 <0.6.0;
 
 /* Example from https://www.ethereum.org/greeter */
 contract mortal {
@@ -9,7 +9,7 @@ contract mortal {
     constructor () public {owner = msg.sender;}
 
     /* Function to recover the funds on the contract */
-    function kill() public {if (msg.sender == owner) selfdestruct(owner);}
+    function kill() public {if (msg.sender == owner) selfdestruct(msg.sender);}
 }
 
 
@@ -18,12 +18,12 @@ contract greeter is mortal {
     string greeting;
 
     /* this runs when the contract is executed */
-    constructor(string _greeting) public {
+    constructor(string memory _greeting) public {
         greeting = _greeting;
     }
 
     /* main function */
-    function greet() public constant returns (string) {
+    function greet() public view returns (string memory) {
         return greeting;
     }
 }

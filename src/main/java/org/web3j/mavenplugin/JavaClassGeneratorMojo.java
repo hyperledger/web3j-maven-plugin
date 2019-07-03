@@ -9,9 +9,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
@@ -23,12 +20,13 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -61,6 +59,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "nativeJavaType", defaultValue = "true")
     protected boolean nativeJavaType;
 
+    @Parameter(property = "pathPrefixes")
+    protected String[] pathPrefixes = new String[0];
+
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
 
@@ -74,48 +75,39 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
-        try {
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-            JSONObject contracts = (JSONObject) jsonObject.get("contracts");
-
-            if (contracts == null) {
-                getLog().warn("no contracts found");
-                return null;
+        JsonParser jsonParser = new JsonParser();
+        Map<String, Object> json = jsonParser.parseJson(result);
+        Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
+        if (contracts == null) {
+            getLog().warn("no contracts found");
+            return null;
+        }
+        Map<String, String> contractRemap = new HashMap<>();
+        for (String contractFilename : contracts.keySet()) {
+            Map<String, String> contractMetadata = contracts.get(contractFilename);
+            String metadata = contractMetadata.get("metadata");
+            if (metadata == null || metadata.length() == 0) {
+                contracts.remove(contractFilename);
+                continue;
             }
-
-            Map<String, String> contractRemap = new HashMap<>();
-            Set<String> keySet = new HashSet<String>(contracts.keySet());
-            for (String contractFilename : keySet) {
-                JSONObject contractMetadata = (JSONObject) contracts.get(contractFilename);
-                Object metadata = contractMetadata.get("metadata");
-                if (metadata == null || metadata.toString().length() == 0) {
-                    contracts.remove(contractFilename);
-                    continue;
-                }
-                getLog().debug("metadata:" + metadata);
-
-
-                JSONObject metadataScript = (JSONObject) jsonParser.parse(metadata.toString());
-
-                Object settingsMap = metadataScript.get("settings");
-                if (settingsMap != null) {
-                    Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
-                    if (compilationTarget != null) {
-                        for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
-                            String value = entry.getValue();
-                            contractRemap.put(contractFilename, value);
-                        }
+            getLog().debug("metadata:" + metadata);
+            Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
+            Object settingsMap = metadataJson.get("settings");
+            // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
+            if (settingsMap != null) {
+                Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
+                if (compilationTarget != null) {
+                    for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
+                        String value = entry.getValue();
+                        contractRemap.put(contractFilename, value);
                     }
                 }
-                JSONObject compiledContract = (JSONObject) contracts.remove(contractFilename);
-                String contractName = contractRemap.get(contractFilename);
-                contracts.put(contractName, compiledContract);
             }
-            return contracts;
-        } catch (ParseException e) {
-            throw new MojoExecutionException("Could not parse SolC result", e);
+            Map<String, String> compiledContract = contracts.remove(contractFilename);
+            String contractName = contractRemap.get(contractFilename);
+            contracts.put(contractName, compiledContract);
         }
+        return contracts;
     }
 
     private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
@@ -124,6 +116,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
                 soliditySourceFiles.getDirectory(),
                 includedFiles,
+                pathPrefixes,
                 SolidityCompiler.Options.ABI,
                 SolidityCompiler.Options.BIN,
                 SolidityCompiler.Options.INTERFACE,
