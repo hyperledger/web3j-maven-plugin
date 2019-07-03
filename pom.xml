@@ -17,7 +17,7 @@
         <maven.version>3.6.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <web3j.version>4.2.0</web3j.version>
-        <solcJ.version>0.4.25</solcJ.version>
+        <solcJ.version>0.5.7</solcJ.version>
     </properties>
 
     <licenses>
