@@ -9,6 +9,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
@@ -20,13 +23,12 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -73,26 +75,30 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         try {
-            ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
-            String script = "JSON.parse(JSON.stringify(" + result + "))";
-            Map<String, Object> json = (Map<String, Object>) engine.eval(script);
-            Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
+            JSONObject contracts = (JSONObject) jsonObject.get("contracts");
+
             if (contracts == null) {
                 getLog().warn("no contracts found");
                 return null;
             }
+
             Map<String, String> contractRemap = new HashMap<>();
-            for (String contractFilename : contracts.keySet()) {
-                Map<String, String> contractMetadata = contracts.get(contractFilename);
-                String metadata = contractMetadata.get("metadata");
-                if (metadata == null || metadata.length() == 0) {
+            Set<String> keySet = new HashSet<String>(contracts.keySet());
+            for (String contractFilename : keySet) {
+                JSONObject contractMetadata = (JSONObject) contracts.get(contractFilename);
+                Object metadata = contractMetadata.get("metadata");
+                if (metadata == null || metadata.toString().length() == 0) {
                     contracts.remove(contractFilename);
                     continue;
                 }
                 getLog().debug("metadata:" + metadata);
-                String metadataScript = "JSON.parse(JSON.stringify(" + metadata + "))";
-                Map<String, Object> metadataJson = (Map<String, Object>) engine.eval(metadataScript);
-                Object settingsMap = metadataJson.get("settings");
+
+
+                JSONObject metadataScript = (JSONObject) jsonParser.parse(metadata.toString());
+
+                Object settingsMap = metadataScript.get("settings");
                 if (settingsMap != null) {
                     Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
                     if (compilationTarget != null) {
@@ -102,12 +108,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                         }
                     }
                 }
-                Map<String, String> compiledContract = contracts.remove(contractFilename);
+                JSONObject compiledContract = (JSONObject) contracts.remove(contractFilename);
                 String contractName = contractRemap.get(contractFilename);
                 contracts.put(contractName, compiledContract);
             }
             return contracts;
-        } catch (ScriptException e) {
+        } catch (ParseException e) {
             throw new MojoExecutionException("Could not parse SolC result", e);
         }
     }
