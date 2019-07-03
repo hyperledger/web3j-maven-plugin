@@ -20,13 +20,10 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 /**
  * Maven Plugin to generate the java classes out of the solidity contract files.
@@ -83,7 +80,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             return null;
         }
         Map<String, String> contractRemap = new HashMap<>();
-        for (String contractFilename : contracts.keySet()) {
+
+        HashSet<String> contractsKeys = new HashSet<>(contracts.keySet());
+        for (String contractFilename : contractsKeys) {
             Map<String, String> contractMetadata = contracts.get(contractFilename);
             String metadata = contractMetadata.get("metadata");
             if (metadata == null || metadata.length() == 0) {

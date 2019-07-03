@@ -1,26 +1,25 @@
 package org.web3j.mavenplugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.util.Map;
 
 public class JsonParser {
 
-    private final ScriptEngine engine;
+    JSONParser jsonParser;
+
 
     public JsonParser() {
-        engine = new ScriptEngineManager(null).getEngineByName("nashorn");
+        jsonParser = new JSONParser();
     }
 
     public Map<String, Object> parseJson(String jsonString) throws MojoExecutionException {
+
         try {
-            String script = "JSON.parse(JSON.stringify(" + jsonString + "))";
-            return  (Map<String, Object>) engine.eval(script);
-        } catch (
-                ScriptException e) {
+            return (Map<String, Object>) jsonParser.parse(jsonString);
+        } catch (ParseException e) {
             throw new MojoExecutionException("Could not parse SolC result", e);
         }
     }
