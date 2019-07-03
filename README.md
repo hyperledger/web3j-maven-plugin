@@ -44,6 +44,7 @@ The are several variable to select the solidity source files, define a source de
 | `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types)                                  | `true`                          |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`  |
 | `<contract>`           | Filter (`<include>` or `<exclude>`) contracts based on the name.                       | `<contract>`<br>`  <includes>`<br>`    <include>greeter</include>`<br>`  </includes>`<br>`  <excludes>`<br>`    <exclude>mortal</exclude>`<br>`  <excludes>`<br>`</contracts>`  |
+| `<pathPrefixes>`       | A list (`<pathPrefixe>`) of replacements of dependency replacements inside Solidity contract.  |  |
 
 Configuration of `outputDirectory` has priority over `sourceDestination`
 
@@ -56,7 +57,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>4.2.0</version>
+    <version>4.2.1-SNAPSHOP</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -81,6 +82,9 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
                 <exclude>mortal</exclude>
             </excludes>
         </contract>
+        <pathPrefixes>
+            <pathPrefix>dep=../dependencies</pathPrefix>
+        </pathPrefixes>
     </configuration>
 </plugin>
 ```
