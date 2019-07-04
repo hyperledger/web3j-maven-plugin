@@ -15,7 +15,6 @@ contract ERC721 is ERC165, IERC721 {
     using SafeMath for uint256;
     using Address for address;
 
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
@@ -159,7 +158,6 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Safely transfers the ownership of a given token ID to another address
      * If the target address is a contract, it must implement `onERC721Received`,
      * which is called upon a safe transfer, and return the magic value
-     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      *
      * Requires the msg sender to be the owner, approved, or operator
@@ -182,7 +180,6 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Safely transfers the ownership of a given token ID to another address
      * If the target address is a contract, it must implement `onERC721Received`,
      * which is called upon a safe transfer, and return the magic value
-     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      * Requires the msg sender to be the owner, approved, or operator
      * @param from current owner of the token

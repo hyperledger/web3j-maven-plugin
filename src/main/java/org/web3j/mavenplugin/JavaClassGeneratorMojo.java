@@ -84,50 +84,15 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         HashSet<String> contractsKeys = new HashSet<>(contracts.keySet());
         for (String contractFilename : contractsKeys) {
             Map<String, String> contractMetadata = contracts.get(contractFilename);
-            String metadata = contractMetadata.get("metadata");
-            if (metadata == null || metadata.length() == 0) {
+            String bin = contractMetadata.get("bin");
+            if (bin == null || bin.length() <= 2) {
                 contracts.remove(contractFilename);
                 continue;
             }
-            getLog().debug("metadata:" + metadata);
-            Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
-            Object settingsMap = metadataJson.get("settings");
-            // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
-            if (settingsMap != null) {
-                Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
-                if (compilationTarget != null) {
-                    for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
-                        String value = entry.getValue();
-                        contractRemap.put(contractFilename, value);
-                    }
-                }
-            }
-            /*
-            if ((metadata == null || metadata.length() <= 2)){
-                if (contractMetadata.get("abi") == null || contractMetadata.get("abi").length() <= 2){
-                    contracts.remove(contractFilename);
-                    continue;
-                } else {
-                    String value = contractFilename.substring(contractFilename.lastIndexOf(":")+1);
-                    contractRemap.put(contractFilename, value);
-                }
-            }
-            if (metadata != null && metadata.length() > 2) {
-                getLog().debug("metadata:" + metadata);
-                Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
-                Object settingsMap = metadataJson.get("settings");
-                // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
-                if (settingsMap != null) {
-                    Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
-                    if (compilationTarget != null) {
-                        for (Map.Entry<String, String> entry : compilationTarget.entrySet()) {
-                            String value = entry.getValue();
-                            contractRemap.put(contractFilename, value);
-                        }
-                    }
-                }
-            }
-             */
+            String classname = contractFilename.substring(contractFilename.lastIndexOf(":") + 1);
+            contractRemap.put(contractFilename, classname);
+//             FIXME With Solc > 0.5 interfacecs are also created.
+
             Map<String, String> compiledContract = contracts.remove(contractFilename);
             String contractName = contractRemap.get(contractFilename);
             contracts.put(contractName, compiledContract);

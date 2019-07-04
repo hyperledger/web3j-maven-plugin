@@ -128,7 +128,7 @@ public class SolidityCompiler {
 
         List<String> commandParts = new ArrayList<>();
         commandParts.add(canonicalSolCPath);
-        commandParts.add("--optimize");
+//        commandParts.add("--optimize");
         commandParts.add("--combined-json");
         commandParts.add(outputFormats);
         commandParts.add("--allow-paths");

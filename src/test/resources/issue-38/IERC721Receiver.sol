@@ -18,7 +18,6 @@ contract IERC721Receiver {
      * @param from The address which previously owned the token
      * @param tokenId The NFT identifier which is being transferred
      * @param data Additional data with no specified format
-     * @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
      */
     function onERC721Received(
         address operator,
