@@ -166,4 +166,28 @@ public class IssueITest {
         assertThat("ConvertLib is created", files.size(), is(1));
         assertThat(files.get(0).getFileName().toString(), is("ConvertLib.java"));
     }
+
+    @Test
+    public void issue38() throws Exception {
+        File pom = new File(resources.getBasedir("issue/38"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/38"), "generate-sources");
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<String> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(p -> p.toFile().getName()).collect(Collectors.toList());
+
+        files.forEach(f -> System.out.println(f.toString()));
+    }
+
+
 }
