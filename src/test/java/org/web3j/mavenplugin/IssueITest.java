@@ -77,7 +77,7 @@ public class IssueITest {
                 .filter(file -> file.toString().endsWith("java"))
                 .map(p -> p.toFile().getName())
                 .collect(Collectors.toList());
-        assertThat("Predictor is created", files.size(), is(5));
+        assertThat("All java class files are generated", files.size(), is(5));
         assertTrue(files.contains("Issue17import1.java"));
         assertTrue(files.contains("Issue17import2.java"));
         assertTrue(files.contains("Issue17relative1.java"));
@@ -114,7 +114,7 @@ public class IssueITest {
                 .filter(file -> file.toString().endsWith("java"))
                 .map(p -> p.toFile().getName())
                 .collect(Collectors.toList());
-        assertThat("Predictor is created", files.size(), is(5));
+        assertThat("All java class files are generated", files.size(), is(5));
         assertTrue(files.contains("Issue17import1.java"));
         assertTrue(files.contains("Issue17import2.java"));
         assertTrue(files.contains("Issue17relative1.java"));
@@ -140,8 +140,8 @@ public class IssueITest {
                 .find(path, 99, (p, bfa) -> bfa.isRegularFile())
                 .filter(file -> file.toString().endsWith("java"))
                 .map(p -> p.toFile().getName()).collect(Collectors.toList());
-        assertThat("Predictor is created", files.size(), is(1));
-        assertTrue(files.contains("ChecImpl.java"));
+        assertThat("Interface and java classes are genearted", files.size(), is(3));
+        assertTrue(files.contains("CheckImpl.java"));
     }
 
     @Test

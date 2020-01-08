@@ -4,7 +4,7 @@ interface InterCheck {
     function check() external;
 }
 
-contract ChecImpl is InterCheck {
+contract CheckImpl is InterCheck {
     function check() public {
         uint256 i = 0;
         i++;
