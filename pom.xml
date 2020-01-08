@@ -3,7 +3,7 @@
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>4.5.11-SNAPSHOT</version>
 
     <name>web3j Maven Mojo</name>
     <description>Mojo's web3j Maven plugin is used to create java classes based on the solidity
@@ -16,8 +16,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.6.0</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <web3j.version>4.2.0</web3j.version>
-        <solcJ.version>0.4.25</solcJ.version>
+        <web3j.version>4.5.11</web3j.version>
+        <solcJ.version>0.5.7</solcJ.version>
     </properties>
 
     <licenses>
