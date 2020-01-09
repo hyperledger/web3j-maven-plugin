@@ -85,7 +85,7 @@ public class SolidityCompiler {
             e.printStackTrace(new PrintWriter(errorWriter));
             error = errorWriter.toString();
             output = "";
-            Thread.currentThread().interrupt();
+//            Thread.currentThread().interrupt();
         }
 
         return new CompilerResult(error, output, success);
