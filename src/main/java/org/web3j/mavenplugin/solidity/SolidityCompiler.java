@@ -83,7 +83,9 @@ public class SolidityCompiler {
             e.printStackTrace(new PrintWriter(errorWriter));
             error = errorWriter.toString();
             output = "";
-            Thread.currentThread().interrupt();
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         return new CompilerResult(error, output, success);
@@ -96,10 +98,6 @@ public class SolidityCompiler {
         String canonicalSolCPath = solc.getCanonicalPath();
 
         List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, pathPrefixes, options);
-
-//        try (Stream<Path> fileStreeam = Files.list(solc.getWorkingDirectory().toPath())) {
-//            fileStreeam.forEach(file -> LOG.warn(file.toString()));
-//        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
@@ -142,8 +140,10 @@ public class SolidityCompiler {
             } else {
                 LOG.error(output);
             }
-        } catch (InterruptedException | IOException e) {
+        } catch (InterruptedException e) {
+            LOG.error("Could not read from solc process.");
             Thread.currentThread().interrupt();
+        } catch (IOException e) {
             LOG.info("Solidity Compiler not installed.");
         }
         return Optional.empty();
@@ -210,7 +210,6 @@ public class SolidityCompiler {
             return name;
         }
     }
-
 
     private static class ParallelReader extends Thread {
 
