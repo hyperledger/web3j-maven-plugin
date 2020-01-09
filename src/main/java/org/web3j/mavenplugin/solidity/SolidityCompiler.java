@@ -1,6 +1,5 @@
 package org.web3j.mavenplugin.solidity;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.BufferedReader;
@@ -10,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class SolidityCompiler {
         }
     }
 
-    public static SolidityCompiler getInstance(Log log) throws MojoExecutionException {
+    public static SolidityCompiler getInstance(Log log) {
         if (INSTANCE == null) {
             INSTANCE = new SolidityCompiler(log);
         }
@@ -85,6 +85,7 @@ public class SolidityCompiler {
             e.printStackTrace(new PrintWriter(errorWriter));
             error = errorWriter.toString();
             output = "";
+            Thread.currentThread().interrupt();
         }
 
         return new CompilerResult(error, output, success);
@@ -98,7 +99,9 @@ public class SolidityCompiler {
 
         List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, pathPrefixes, options);
 
-        Files.list(solc.getWorkingDirectory().toPath()).forEach(file -> LOG.warn(file.toString()));
+        try (Stream<Path> fileStreeam = Files.list(solc.getWorkingDirectory().toPath())) {
+            fileStreeam.forEach(file -> LOG.warn(file.toString()));
+        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
@@ -142,6 +145,7 @@ public class SolidityCompiler {
                 LOG.error(output);
             }
         } catch (InterruptedException | IOException e) {
+            Thread.currentThread().interrupt();
             LOG.info("Solidity Compiler not installed.");
         }
         return Optional.empty();
@@ -238,6 +242,7 @@ public class SolidityCompiler {
             return content;
         }
 
+        @Override
         public void run() {
 
             try (BufferedReader buffer = new BufferedReader(new InputStreamReader(stream))) {

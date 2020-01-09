@@ -73,7 +73,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Path createPath(String destinationPath) throws IOException {
         Path path = Paths.get(destinationPath, packageName);
 
-        if (Files.notExists(path)) {
+        if (!path.toFile().exists()) {
             Files.createDirectories(path);
         }
         return path;
@@ -249,13 +249,14 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             getLog().warn(warnMsg);
             return;
         }
-        for (String contractName : contracts.keySet()) {
+        for (Map.Entry<String, Map<String, String>> entry : contracts.entrySet()) {
+            String contractName = entry.getKey();
             if (isFiltered(contractName)) {
                 getLog().debug("\tContract '" + contractName + "' is filtered");
                 continue;
             }
             try {
-                Map<String, String> contractResult = contracts.get(contractName);
+                Map<String, String> contractResult = entry.getValue();
                 generatedJavaClass(contractResult, contractName);
                 generatedAbi(contractResult, contractName);
                 generatedBin(contractResult, contractName);
