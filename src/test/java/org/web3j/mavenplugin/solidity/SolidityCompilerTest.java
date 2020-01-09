@@ -50,6 +50,17 @@ public class SolidityCompilerTest {
         assertTrue(compilerResult.output.isEmpty());
     }
 
+    @Test
+    public void pragmaVersionTooHigh() {
+        Set<String> source = Collections.singleton("TooHighPragmaVersion.sol");
+
+        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+
+        assertTrue(compilerResult.isFailed());
+        assertFalse(compilerResult.errors.isEmpty());
+        assertTrue(compilerResult.output.isEmpty());
+    }
+
     @Before
     public void loadCompiler() throws MojoExecutionException {
         solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());

@@ -15,7 +15,7 @@ public class VersionMismatchException extends MojoExecutionException {
         super("Could not compile solidity source file. Version mismatch.");
         solCVersion = version;
 
-        Matcher matcher = Constant.SOLC_VERSION_PATTERN.matcher(message);
+        Matcher matcher = Constant.SOLIDITY_VERSION_EXTRACT.matcher(message);
         solidityContractVersion = (matcher.find()) ? matcher.group(1) : null;
     }
 
