@@ -8,19 +8,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Compiles the given Solidity Contracts into binary code.
- *
+ * <p>
  * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
  */
 public class SolidityCompiler {
@@ -29,13 +30,19 @@ public class SolidityCompiler {
 
     private Log LOG;
 
+    private String usedSolCVersion;
+
     private static SolidityCompiler INSTANCE;
 
     private SolidityCompiler(Log log) {
         this.LOG = log;
-        if (!solidityCompilerExists()) {
+        Optional<String> solCVersion = getSolCVersionFromSystemPath();
+        if (solCVersion.isPresent()) {
             LOG.info("Solidity Compiler from library is used");
+            usedSolCVersion = solCVersion.get();
+        } else {
             solc = new SolC();
+            usedSolCVersion = solc.getVersion();
         }
     }
 
@@ -76,6 +83,9 @@ public class SolidityCompiler {
             e.printStackTrace(new PrintWriter(errorWriter));
             error = errorWriter.toString();
             output = "";
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         return new CompilerResult(error, output, success);
@@ -88,8 +98,6 @@ public class SolidityCompiler {
         String canonicalSolCPath = solc.getCanonicalPath();
 
         List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, pathPrefixes, options);
-
-        Files.list(solc.getWorkingDirectory().toPath()).forEach(file -> LOG.warn(file.toString()));
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
                 .directory(solc.getWorkingDirectory());
@@ -111,6 +119,34 @@ public class SolidityCompiler {
         return Stream.of(pathPrefixes)
                 .map(pathPrefix -> replaceMakePathPrefixAbsolute(rootDirectory, pathPrefix))
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
+    }
+
+    public Optional<String> getSolCVersionFromSystemPath() {
+        try {
+            Process p = Runtime.getRuntime().exec("solc --version");
+
+            String output;
+            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
+                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+            if (p.waitFor() == 0) {
+                LOG.info("Solidity Compiler found");
+                LOG.debug(output);
+
+                Matcher matcher = Constant.SOLC_VERSION_PATTERN.matcher(output);
+                if (matcher.find()) {
+                    return Optional.ofNullable(matcher.group(1));
+                }
+            } else {
+                LOG.error(output);
+            }
+        } catch (InterruptedException e) {
+            LOG.error("Could not read from solc process.");
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            LOG.info("Solidity Compiler not installed.");
+        }
+        return Optional.empty();
     }
 
     private String prepareAllowPath(String rootDirectory, String[] pathPrefixes) {
@@ -148,25 +184,8 @@ public class SolidityCompiler {
         return prefixAndPath;
     }
 
-    private boolean solidityCompilerExists() {
-        try {
-            Process p = Runtime.getRuntime().exec("solc --version");
-
-            String output;
-            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
-                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
-            }
-            if (p.waitFor() == 0) {
-                LOG.info("Solidity Compiler found");
-                LOG.debug(output);
-                return true;
-            } else {
-                LOG.error(output);
-            }
-        } catch (InterruptedException | IOException e) {
-            LOG.info("Solidity Compiler not installed.");
-        }
-        return false;
+    public String getUsedSolCVersion() {
+        return usedSolCVersion;
     }
 
     public enum Options {
@@ -191,7 +210,6 @@ public class SolidityCompiler {
             return name;
         }
     }
-
 
     private static class ParallelReader extends Thread {
 
@@ -221,6 +239,7 @@ public class SolidityCompiler {
             return content;
         }
 
+        @Override
         public void run() {
 
             try (BufferedReader buffer = new BufferedReader(new InputStreamReader(stream))) {

@@ -1,6 +1,8 @@
 package org.web3j.mavenplugin;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -9,18 +11,24 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.web3j.abi.datatypes.Address;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
+import org.web3j.mavenplugin.solidity.VersionMismatchException;
+import org.web3j.protocol.ObjectMapperFactory;
+import org.web3j.protocol.core.methods.response.AbiDefinition;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,7 +73,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Path createPath(String destinationPath) throws IOException {
         Path path = Paths.get(destinationPath, packageName);
 
-        if (Files.notExists(path)) {
+        if (!path.toFile().exists()) {
             Files.createDirectories(path);
         }
         return path;
@@ -109,29 +117,37 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         return contracts;
     }
 
-    private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
-        if (includedFiles == null || includedFiles.isEmpty())
-            return "{}";
-        CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
-                soliditySourceFiles.getDirectory(),
-                includedFiles,
-                pathPrefixes,
-                SolidityCompiler.Options.ABI,
-                SolidityCompiler.Options.BIN,
-                SolidityCompiler.Options.INTERFACE,
-                SolidityCompiler.Options.METADATA
-        );
-        if (result.isFailed()) {
-            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+    private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {
+        if (!StringUtils.containsIgnoreCase(outputFormat, "java")) {
+            return;
         }
 
-        getLog().debug("\t\tResult:\t" + result.output);
-        if (result.errors.contains("Warning:")) {
-            getLog().info("\tCompile Warning:\n" + result.errors);
-        } else {
-            getLog().debug("\t\tError: \t" + result.errors);
+        int addressLength = Address.DEFAULT_LENGTH / Byte.SIZE;
+        boolean primitiveTypes = false;
+
+        List<AbiDefinition> functionDefinitions = loadContractDefinition(results.get(SolidityCompiler.Options.ABI.getName()));
+
+
+        if (functionDefinitions.isEmpty()) {
+            getLog().warn("Unable to parse input ABI file");
+            return;
         }
-        return result.output;
+
+        new SolidityFunctionWrapper(
+                nativeJavaType,
+                primitiveTypes,
+                false, //generateSendTxForCalls
+                addressLength)
+                .generateJavaFiles(
+                        org.web3j.tx.Contract.class,
+                        contractName,
+                        results.get(SolidityCompiler.Options.BIN.getName()),
+                        functionDefinitions,
+                        StringUtils.defaultString(outputDirectory.getJava(), sourceDestination),
+                        packageName,
+                        null
+
+                );
     }
 
     private void processContractFile(Collection<String> files) throws MojoExecutionException {
@@ -192,16 +208,39 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
     }
 
-    private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {
-        if (!StringUtils.containsIgnoreCase(outputFormat, "java")) {
-            return;
+    protected List<AbiDefinition> loadContractDefinition(String absFile) throws IOException {
+        ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
+        AbiDefinition[] abiDefinition = objectMapper.readValue(absFile, AbiDefinition[].class);
+        return Arrays.asList(abiDefinition);
+    }
+
+    private String parseSoliditySources(Collection<String> includedFiles) throws MojoExecutionException {
+        if (includedFiles.isEmpty()) {
+            return "{}";
         }
-        new SolidityFunctionWrapper(nativeJavaType).generateJavaFiles(
-                contractName,
-                results.get(SolidityCompiler.Options.BIN.getName()),
-                results.get(SolidityCompiler.Options.ABI.getName()),
-                StringUtils.defaultString(outputDirectory.getJava(), sourceDestination),
-                packageName);
+        CompilerResult result = SolidityCompiler.getInstance(getLog()).compileSrc(
+                soliditySourceFiles.getDirectory(),
+                includedFiles,
+                pathPrefixes,
+                SolidityCompiler.Options.ABI,
+                SolidityCompiler.Options.BIN,
+                SolidityCompiler.Options.INTERFACE,
+                SolidityCompiler.Options.METADATA
+        );
+        if (result.isFailed()) {
+            if (result.errors.contains("Source file requires different compiler version")) {
+                throw new VersionMismatchException(SolidityCompiler.getInstance(getLog()).getUsedSolCVersion(), result.errors);
+            }
+            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+        }
+
+        getLog().debug("\t\tResult:\t" + result.output);
+        if (result.errors.contains("Warning:")) {
+            getLog().info("\tCompile Warning:\n" + result.errors);
+        } else {
+            getLog().debug("\t\tError: \t" + result.errors);
+        }
+        return result.output;
     }
 
     private void processResult(String result, String warnMsg) throws MojoExecutionException {
@@ -210,13 +249,14 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             getLog().warn(warnMsg);
             return;
         }
-        for (String contractName : contracts.keySet()) {
+        for (Map.Entry<String, Map<String, String>> entry : contracts.entrySet()) {
+            String contractName = entry.getKey();
             if (isFiltered(contractName)) {
                 getLog().debug("\tContract '" + contractName + "' is filtered");
                 continue;
             }
             try {
-                Map<String, String> contractResult = contracts.get(contractName);
+                Map<String, String> contractResult = entry.getValue();
                 generatedJavaClass(contractResult, contractName);
                 generatedAbi(contractResult, contractName);
                 generatedBin(contractResult, contractName);

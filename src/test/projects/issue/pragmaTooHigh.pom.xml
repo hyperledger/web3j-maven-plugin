@@ -20,12 +20,10 @@
                 <configuration>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
-                    <nativeJavaType>true</nativeJavaType>
-                    <!--   <outputFormat>java,abi,bin</outputFormat> -->
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
                         <includes>
-                            <include>Greeter.sol</include>
+                            <include>TooHighPragmaVersion.sol</include>
                         </includes>
                     </soliditySourceFiles>
                 </configuration>
