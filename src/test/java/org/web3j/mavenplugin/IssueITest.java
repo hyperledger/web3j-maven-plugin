@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
+import org.web3j.mavenplugin.solidity.VersionMismatchException;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -133,7 +134,12 @@ public class IssueITest {
         assertNotNull(mojo);
 
         mojo.sourceDestination = testFolder.getRoot().getPath();
-        mojo.execute();
+
+        try {
+            mojo.execute();
+        } catch (VersionMismatchException v) {
+            org.junit.Assume.assumeNoException(v);
+        }
 
         Path path = Paths.get(mojo.sourceDestination);
 
@@ -141,7 +147,7 @@ public class IssueITest {
                 .find(path, 99, (p, bfa) -> bfa.isRegularFile())
                 .filter(file -> file.toString().endsWith("java"))
                 .map(p -> p.toFile().getName()).collect(Collectors.toList());
-        assertThat("Interface and java classes are genearted", files.size(), is(3));
+        assertThat("Interface and java classes are generated", files.size(), is(3));
         assertTrue(files.contains("CheckImpl.java"));
     }
 

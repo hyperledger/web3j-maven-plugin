@@ -122,6 +122,31 @@ public class SolidityCompiler {
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
     }
 
+    public Optional<String> getSolCVersionFromSystemPath() {
+        try {
+            Process p = Runtime.getRuntime().exec("solc --version");
+
+            String output;
+            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
+                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+            if (p.waitFor() == 0) {
+                LOG.info("Solidity Compiler found");
+                LOG.debug(output);
+
+                Matcher matcher = Constant.SOLC_VERSION_PATTERN.matcher(output);
+                if (matcher.find()) {
+                    return Optional.ofNullable(matcher.group(1));
+                }
+            } else {
+                LOG.error(output);
+            }
+        } catch (InterruptedException | IOException e) {
+            LOG.info("Solidity Compiler not installed.");
+        }
+        return Optional.empty();
+    }
+
     private String prepareAllowPath(String rootDirectory, String[] pathPrefixes) {
         return Stream.concat(
                 Stream.of(rootDirectory).map(this::toAbsolutePath),
@@ -157,29 +182,8 @@ public class SolidityCompiler {
         return prefixAndPath;
     }
 
-    public Optional<String> getSolCVersionFromSystemPath() {
-        try {
-            Process p = Runtime.getRuntime().exec("solc --version");
-
-            String output;
-            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
-                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
-            }
-            if (p.waitFor() == 0) {
-                LOG.info("Solidity Compiler found");
-                LOG.debug(output);
-
-                Matcher matcher = SolCConstant.SOLC_VERSION_PATTERN.matcher(output);
-                if (matcher.find()) {
-                    return Optional.ofNullable(matcher.group(1));
-                }
-            } else {
-                LOG.error(output);
-            }
-        } catch (InterruptedException | IOException e) {
-            LOG.info("Solidity Compiler not installed.");
-        }
-        return Optional.empty();
+    public String getUsedSolCVersion() {
+        return usedSolCVersion;
     }
 
     public enum Options {

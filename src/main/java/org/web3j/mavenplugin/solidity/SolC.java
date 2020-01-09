@@ -45,7 +45,7 @@ public class SolC {
                 String output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
 
                 if (p.waitFor() == 0) {
-                    Matcher matcher = SolCConstant.SOLC_VERSION_PATTERN.matcher(output);
+                    Matcher matcher = Constant.SOLC_VERSION_PATTERN.matcher(output);
                     if (matcher.find()) {
                         return matcher.group(1);
                     }
