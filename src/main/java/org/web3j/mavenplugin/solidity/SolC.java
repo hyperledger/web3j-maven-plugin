@@ -1,28 +1,32 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Scanner;
+import java.util.regex.Matcher;
 
 /**
  * Wrapper class to the native solc execution on different platforms.
- *
+ * <p>
  * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
  */
 public class SolC {
 
-    private File solc = null;
+    private File solc;
 
     private String canonicalPath;
     private String canonicalWorkingDirectory;
     private File workingDirectory;
+    private String version;
 
     SolC() {
         try {
-            initBundled();
+            solc = initBundled();
 
             canonicalPath = solc.getCanonicalPath();
             canonicalWorkingDirectory = solc.getParentFile().getCanonicalPath();
@@ -33,31 +37,33 @@ public class SolC {
         }
     }
 
-    private void initBundled() throws IOException {
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
-        tmpDir.setReadable(true);
-        tmpDir.setWritable(true);
-        tmpDir.setExecutable(true);
-        tmpDir.mkdirs();
+    private String evaluateSolCVersion() {
+        try {
+            Process p = Runtime.getRuntime().exec(getCanonicalPath() + " --version");
 
-        String solcPath = "/native/" + getOS() + "/solc/";
-        InputStream is = getClass().getResourceAsStream(solcPath + "file.list");
-        Scanner scanner = new Scanner(is);
-        while (scanner.hasNext()) {
-            String s = scanner.next();
-            File targetFile = new File(tmpDir, s);
-            InputStream fis = getClass().getResourceAsStream(solcPath + s);
-            Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            if (solc == null) {
-                // first file in the list denotes executable
-                solc = targetFile;
-                solc.setExecutable(true);
+            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
+                String output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+
+                if (p.waitFor() == 0) {
+                    Matcher matcher = SolCConstant.SOLC_VERSION_PATTERN.matcher(output);
+                    if (matcher.find()) {
+                        return matcher.group(1);
+                    }
+                }
             }
-            targetFile.deleteOnExit();
+        } catch (InterruptedException | IOException e) {
+            throw new RuntimeException("Could not evaluate SolC Version from '" + getCanonicalPath() + "'", e);
         }
-        tmpDir.deleteOnExit();
+        throw new RuntimeException("Could not evaluate SolC Version from '" + getCanonicalPath() + "'");
     }
 
+    public String getCanonicalPath() {
+        return canonicalPath;
+    }
+
+    public String getCanonicalWorkingDirectory() {
+        return canonicalWorkingDirectory;
+    }
 
     private String getOS() {
         String osName = System.getProperty("os.name").toLowerCase();
@@ -72,17 +78,47 @@ public class SolC {
         }
     }
 
-    public String getCanonicalPath() {
-        return canonicalPath;
-    }
-
-    public String getCanonicalWorkingDirectory() {
-        return canonicalWorkingDirectory;
+    /**
+     * Evaluate (lazy) the version of the solC Library.
+     * <p>
+     * The first time this getter is called, a version call to solC is executed. (<code>solc
+     * --version</code>)
+     *
+     * @return
+     */
+    public String getVersion() {
+        if (StringUtils.isEmpty(version)) {
+            version = evaluateSolCVersion();
+        }
+        return version;
     }
 
     public File getWorkingDirectory() {
         return workingDirectory;
     }
 
+    private File initBundled() throws IOException {
+        File solC = null;
+        File tmpDir = new File(System.getProperty("java.io.tmpdir"), "solc");
+        tmpDir.setReadable(true);
+        tmpDir.setWritable(true);
+        tmpDir.setExecutable(true);
+        tmpDir.mkdirs();
 
+        String solcPath = "/native/" + getOS() + "/solc/";
+        InputStream is = getClass().getResourceAsStream(solcPath + "file.list");
+        Scanner scanner = new Scanner(is);
+        if (scanner.hasNext()) {
+            // first file in the list denotes executable
+            String s = scanner.next();
+            File targetFile = new File(tmpDir, s);
+            InputStream fis = getClass().getResourceAsStream(solcPath + s);
+            Files.copy(fis, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            solC = targetFile;
+            solC.setExecutable(true);
+            targetFile.deleteOnExit();
+        }
+        tmpDir.deleteOnExit();
+        return solC;
+    }
 }

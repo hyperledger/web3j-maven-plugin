@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
@@ -86,7 +87,7 @@ public class IssueITest {
     }
 
     @Test
-    public void issue09() {
+    public void issue09() throws MojoExecutionException {
         SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
         Set<String> sources = Collections.singleton("issue-09.sol");
 

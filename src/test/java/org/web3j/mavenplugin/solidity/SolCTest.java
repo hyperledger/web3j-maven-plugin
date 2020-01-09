@@ -4,9 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -64,26 +63,10 @@ public class SolCTest {
         assertThat(solC.getCanonicalPath(), endsWith("solc"));
     }
 
-
     @Test
-    public void takeExecutableFromSystemPath() throws IOException, InterruptedException {
+    public void evaluateSolCVersion() {
+        SolC solC = new SolC();
 
-        try {
-            Process p = Runtime.getRuntime().exec("solc --version");
-
-            String output = "";
-            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
-                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
-            }
-
-
-            if (p.waitFor() == 0) {
-                System.out.println("found and works");
-            }
-            System.out.println(output);
-        } catch (IOException io) {
-            System.out.println("solc is NOT in systmpath");
-        }
+        assertThat(solC.getVersion(), startsWith("0.5"));
     }
-
 }

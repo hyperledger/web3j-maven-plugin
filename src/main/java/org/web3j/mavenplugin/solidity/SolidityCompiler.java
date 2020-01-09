@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.BufferedReader;
@@ -15,12 +16,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Compiles the given Solidity Contracts into binary code.
- *
+ * <p>
  * Inspired by https://github.com/ethereum/ethereumj/tree/develop/ethereumj-core/src/main/java/org/ethereum/solidity
  */
 public class SolidityCompiler {
@@ -29,17 +32,23 @@ public class SolidityCompiler {
 
     private Log LOG;
 
+    private String usedSolCVersion;
+
     private static SolidityCompiler INSTANCE;
 
     private SolidityCompiler(Log log) {
         this.LOG = log;
-        if (!solidityCompilerExists()) {
+        Optional<String> solCVersion = getSolCVersionFromSystemPath();
+        if (solCVersion.isPresent()) {
             LOG.info("Solidity Compiler from library is used");
+            usedSolCVersion = solCVersion.get();
+        } else {
             solc = new SolC();
+            usedSolCVersion = solc.getVersion();
         }
     }
 
-    public static SolidityCompiler getInstance(Log log) {
+    public static SolidityCompiler getInstance(Log log) throws MojoExecutionException {
         if (INSTANCE == null) {
             INSTANCE = new SolidityCompiler(log);
         }
@@ -148,7 +157,7 @@ public class SolidityCompiler {
         return prefixAndPath;
     }
 
-    private boolean solidityCompilerExists() {
+    public Optional<String> getSolCVersionFromSystemPath() {
         try {
             Process p = Runtime.getRuntime().exec("solc --version");
 
@@ -159,14 +168,18 @@ public class SolidityCompiler {
             if (p.waitFor() == 0) {
                 LOG.info("Solidity Compiler found");
                 LOG.debug(output);
-                return true;
+
+                Matcher matcher = SolCConstant.SOLC_VERSION_PATTERN.matcher(output);
+                if (matcher.find()) {
+                    return Optional.ofNullable(matcher.group(1));
+                }
             } else {
                 LOG.error(output);
             }
         } catch (InterruptedException | IOException e) {
             LOG.info("Solidity Compiler not installed.");
         }
-        return false;
+        return Optional.empty();
     }
 
     public enum Options {
