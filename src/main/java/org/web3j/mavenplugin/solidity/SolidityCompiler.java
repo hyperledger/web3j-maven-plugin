@@ -1,6 +1,8 @@
 package org.web3j.mavenplugin.solidity;
 
 import org.apache.maven.plugin.logging.Log;
+import org.web3j.sokt.SolcInstance;
+import org.web3j.sokt.SolidityFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,8 +16,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,24 +26,13 @@ import java.util.stream.Stream;
  */
 public class SolidityCompiler {
 
-    private SolC solc;
-
     private Log LOG;
 
-    private String usedSolCVersion;
-
     private static SolidityCompiler INSTANCE;
+    private String usedSolCVersion;
 
     private SolidityCompiler(Log log) {
         this.LOG = log;
-        Optional<String> solCVersion = getSolCVersionFromSystemPath();
-        if (solCVersion.isPresent()) {
-            LOG.info("Solidity Compiler from library is used");
-            usedSolCVersion = solCVersion.get();
-        } else {
-            solc = new SolC();
-            usedSolCVersion = solc.getVersion();
-        }
     }
 
     public static SolidityCompiler getInstance(Log log) {
@@ -62,12 +51,9 @@ public class SolidityCompiler {
         boolean success = false;
         String error;
         String output;
-        Process process;
 
         try {
-            process = (solc != null)
-                    ? getSolCProcessFromLibrary(rootDirectory, sources, pathPrefixes, options)
-                    : getSolCProcessFromSystem(rootDirectory, sources, pathPrefixes, options);
+            Process process = getSolcProcessFromSokt(rootDirectory, sources, pathPrefixes, options);
 
             ParallelReader errorReader = new ParallelReader(process.getErrorStream());
             ParallelReader outputReader = new ParallelReader(process.getInputStream());
@@ -91,26 +77,12 @@ public class SolidityCompiler {
         return new CompilerResult(error, output, success);
     }
 
-    private Process getSolCProcessFromLibrary(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
-        assert solc != null;
-
+    private Process getSolcProcessFromSokt(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
+        SolidityFile solidityFile = new SolidityFile(sources.iterator().next());
+        SolcInstance instance = solidityFile.getCompilerInstance(".web3j", true);
+        usedSolCVersion = instance.getSolcRelease().getVersion();
         Process process;
-        String canonicalSolCPath = solc.getCanonicalPath();
-
-        List<String> commandParts = prepareCommandOptions(canonicalSolCPath, rootDirectory, sources, pathPrefixes, options);
-
-        ProcessBuilder processBuilder = new ProcessBuilder(commandParts)
-                .directory(solc.getWorkingDirectory());
-        processBuilder
-                .environment()
-                .put("LD_LIBRARY_PATH", solc.getCanonicalWorkingDirectory());
-        process = processBuilder.start();
-        return process;
-    }
-
-    private Process getSolCProcessFromSystem(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
-        Process process;
-        List<String> commandParts = prepareCommandOptions("solc", rootDirectory, sources, pathPrefixes, options);
+        List<String> commandParts = prepareCommandOptions(instance.getSolcFile().getAbsolutePath(), rootDirectory, sources, pathPrefixes, options);
         process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
         return process;
     }
@@ -119,34 +91,6 @@ public class SolidityCompiler {
         return Stream.of(pathPrefixes)
                 .map(pathPrefix -> replaceMakePathPrefixAbsolute(rootDirectory, pathPrefix))
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
-    }
-
-    public Optional<String> getSolCVersionFromSystemPath() {
-        try {
-            Process p = Runtime.getRuntime().exec("solc --version");
-
-            String output;
-            try (java.util.Scanner s = new java.util.Scanner(p.getInputStream())) {
-                output = s.useDelimiter("\\A").hasNext() ? s.next() : "";
-            }
-            if (p.waitFor() == 0) {
-                LOG.info("Solidity Compiler found");
-                LOG.debug(output);
-
-                Matcher matcher = Constant.SOLC_VERSION_PATTERN.matcher(output);
-                if (matcher.find()) {
-                    return Optional.ofNullable(matcher.group(1));
-                }
-            } else {
-                LOG.error(output);
-            }
-        } catch (InterruptedException e) {
-            LOG.error("Could not read from solc process.");
-            Thread.currentThread().interrupt();
-        } catch (IOException e) {
-            LOG.info("Solidity Compiler not installed.");
-        }
-        return Optional.empty();
     }
 
     private String prepareAllowPath(String rootDirectory, String[] pathPrefixes) {
