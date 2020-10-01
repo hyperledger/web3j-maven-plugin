@@ -191,9 +191,8 @@ public class IssueITest {
         try {
             mojo.execute();
             fail("Should throw a version mismatch exception.");
-        } catch (VersionMismatchException v) {
-            assertThat(v.getSolidityContractVersion(), containsString("pragma solidity >=10.0.0;"));
-            assertThat(v.getSolCVersion(), is(notNullValue()));
+        } catch (Exception v) {
+            assertThat(v.getMessage(), containsString("No compatible solc release could be found for the file"));
         }
     }
 }

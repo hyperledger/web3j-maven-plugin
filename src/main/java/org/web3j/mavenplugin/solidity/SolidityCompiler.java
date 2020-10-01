@@ -4,12 +4,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.web3j.sokt.SolcInstance;
 import org.web3j.sokt.SolidityFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +73,7 @@ public class SolidityCompiler {
     }
 
     private Process getSolcProcessFromSokt(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
-        SolidityFile solidityFile = new SolidityFile(sources.iterator().next());
+        SolidityFile solidityFile = new SolidityFile(Paths.get(rootDirectory, sources.iterator().next()).toFile().getAbsolutePath());
         SolcInstance instance = solidityFile.getCompilerInstance(".web3j", true);
         usedSolCVersion = instance.getSolcRelease().getVersion();
         Process process;
