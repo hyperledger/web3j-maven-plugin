@@ -157,11 +157,11 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
 
         if (soliditySourceFiles.getDirectory() == null) {
-            getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
+            getLog().info("No Solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
             soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
         }
         if (soliditySourceFiles.getIncludes().isEmpty()) {
-            getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
+            getLog().info("No Solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
             soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
         }
 
@@ -227,7 +227,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 SolidityCompiler.Options.METADATA
         );
         if (result.isFailed()) {
-            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+            throw new MojoExecutionException("Could not compile Solidity files\n" + result.errors);
         }
 
         getLog().debug("\t\tResult:\t" + result.output);
