@@ -132,10 +132,10 @@ public class SolidityCompiler {
         BIN("bin"),
         INTERFACE("interface"),
         ABI("abi"),
-        METADATA("metadata"),
+        METADATA("metadata")
         ;
 
-        private String name;
+        private final String name;
 
         Options(String name) {
             this.name = name;

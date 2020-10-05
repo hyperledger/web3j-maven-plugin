@@ -15,7 +15,6 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
-import org.web3j.mavenplugin.solidity.VersionMismatchException;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 
@@ -228,9 +227,6 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 SolidityCompiler.Options.METADATA
         );
         if (result.isFailed()) {
-            if (result.errors.contains("Source file requires different compiler version")) {
-                throw new VersionMismatchException(SolidityCompiler.getInstance(getLog()).getUsedSolCVersion(), result.errors);
-            }
             throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
         }
 

@@ -1,6 +1,5 @@
 package org.web3j.mavenplugin;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
@@ -9,7 +8,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
-import org.web3j.mavenplugin.solidity.VersionMismatchException;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -20,14 +18,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class IssueITest {
 
@@ -91,7 +86,7 @@ public class IssueITest {
     }
 
     @Test
-    public void issue09() throws MojoExecutionException {
+    public void issue09() {
         SolidityCompiler solidityCompiler = SolidityCompiler.getInstance(new SystemStreamLog());
         Set<String> sources = Collections.singleton("issue-09.sol");
 
@@ -132,17 +127,10 @@ public class IssueITest {
         File pom = new File(resources.getBasedir("issue/23"), "pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
-
         JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/23"), "generate-sources");
         assertNotNull(mojo);
-
         mojo.sourceDestination = testFolder.getRoot().getPath();
-
-        try {
-            mojo.execute();
-        } catch (VersionMismatchException v) {
-            org.junit.Assume.assumeNoException("installed solc Version '" + v.getSolCVersion() + "', but used version in contract '" + v.getSolidityContractVersion() + "'", v);
-        }
+        mojo.execute();
 
         Path path = Paths.get(mojo.sourceDestination);
 
@@ -175,24 +163,5 @@ public class IssueITest {
                 .collect(Collectors.toList());
         assertThat("ConvertLib is created", files.size(), is(1));
         assertThat(files.get(0).getFileName().toString(), is("ConvertLib.java"));
-    }
-
-    @Test
-    public void pragmaVersionTooHigh() throws Exception {
-        File pom = new File(resources.getBasedir("issue"), "pragmaTooHigh.pom.xml");
-        assertNotNull(pom);
-        assertTrue(pom.exists());
-
-        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
-        assertNotNull(mojo);
-
-        mojo.sourceDestination = testFolder.getRoot().getPath();
-        mojo.outputFormat = "java";
-        try {
-            mojo.execute();
-            fail("Should throw a version mismatch exception.");
-        } catch (Exception v) {
-            assertThat(v.getMessage(), containsString("No compatible solc release could be found for the file"));
-        }
     }
 }
