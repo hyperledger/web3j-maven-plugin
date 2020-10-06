@@ -15,7 +15,7 @@ the java classes into the folder `src/main/java`.
         <plugin>
             <groupId>org.web3j</groupId>
             <artifactId>web3j-maven-plugin</artifactId>
-            <version>4.5.11</version>
+            <version>4.6.5</version>
             <configuration>
                 <soliditySourceFiles/>
             </configuration>
@@ -128,6 +128,9 @@ within a multi-module project.
 
 
 ## Changelog
+### 4.6.5
+ *  Replace SolC with Sokt (thx to @josh-richardson & @AlexandrouR)
+
 ### 4.5.11
  * Update web3j core version to 4.5.11
  * Update solcj version to 0.5.7
