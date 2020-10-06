@@ -8,8 +8,9 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class SolidityCompilerTest {
 
@@ -22,7 +23,8 @@ public class SolidityCompilerTest {
         CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
 
         assertFalse(compilerResult.errors, compilerResult.isFailed());
-        assertTrue(compilerResult.errors, compilerResult.errors.isEmpty());
+        // We don't need this assertion, newer versions of solc may always print warnings to stderr about our source files
+        // assertTrue(compilerResult.errors, compilerResult.errors.isEmpty());
         assertFalse(compilerResult.output.isEmpty());
 
         assertTrue(compilerResult.output.contains("Greeter.sol:greeter\""));
@@ -43,22 +45,24 @@ public class SolidityCompilerTest {
     public void invalidContractVersion() {
         Set<String> source = Collections.singleton("Greeter-invalid-version.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
-
-        assertTrue(compilerResult.isFailed());
-        assertFalse(compilerResult.errors.isEmpty());
-        assertTrue(compilerResult.output.isEmpty());
+        try {
+            solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+            fail("Should throw a version mismatch exception.");
+        } catch (Exception v) {
+            assertThat(v.getMessage(), containsString("No compatible solc release could be found for the file"));
+        }
     }
 
     @Test
     public void pragmaVersionTooHigh() {
         Set<String> source = Collections.singleton("TooHighPragmaVersion.sol");
 
-        CompilerResult compilerResult = solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
-
-        assertTrue(compilerResult.isFailed());
-        assertFalse(compilerResult.errors.isEmpty());
-        assertTrue(compilerResult.output.isEmpty());
+        try {
+            solidityCompiler.compileSrc("src/test/resources/", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+            fail("Should throw a version mismatch exception.");
+        } catch (Exception v) {
+            assertThat(v.getMessage(), containsString("No compatible solc release could be found for the file"));
+        }
     }
 
     @Before

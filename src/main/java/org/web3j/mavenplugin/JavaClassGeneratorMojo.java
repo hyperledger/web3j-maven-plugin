@@ -15,7 +15,6 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
-import org.web3j.mavenplugin.solidity.VersionMismatchException;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 
@@ -158,11 +157,11 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
 
         if (soliditySourceFiles.getDirectory() == null) {
-            getLog().info("No solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
+            getLog().info("No Solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
             soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
         }
         if (soliditySourceFiles.getIncludes().isEmpty()) {
-            getLog().info("No solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
+            getLog().info("No Solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
             soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
         }
 
@@ -228,10 +227,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 SolidityCompiler.Options.METADATA
         );
         if (result.isFailed()) {
-            if (result.errors.contains("Source file requires different compiler version")) {
-                throw new VersionMismatchException(SolidityCompiler.getInstance(getLog()).getUsedSolCVersion(), result.errors);
-            }
-            throw new MojoExecutionException("Could not compile solidity files\n" + result.errors);
+            throw new MojoExecutionException("Could not compile Solidity files\n" + result.errors);
         }
 
         getLog().debug("\t\tResult:\t" + result.output);
