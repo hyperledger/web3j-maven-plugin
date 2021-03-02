@@ -128,8 +128,11 @@ within a multi-module project.
 
 
 ## Changelog
+### 4.8.4
+* Update web3j core version to 4.8.4
+
 ### 4.8.1
- * Update web3j core version to 4.8.1
+* Update web3j core version to 4.8.1
 
 ### 4.6.5
  *  Replace SolC with Sokt (thx to @josh-richardson & @AlexandrouR)
