@@ -9,6 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.web3j.abi.datatypes.Address;
@@ -68,6 +69,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
+
+    @Parameter(defaultValue = "${project}", readonly = true)
+    private MavenProject mavenProject;
 
     private Path createPath(String destinationPath) throws IOException {
         Path path = Paths.get(destinationPath, packageName);
@@ -132,6 +136,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             return;
         }
 
+        String javaOutput = StringUtils.defaultString(outputDirectory.getJava(), sourceDestination);
         new SolidityFunctionWrapper(
                 nativeJavaType,
                 primitiveTypes,
@@ -142,11 +147,14 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                         contractName,
                         results.get(SolidityCompiler.Options.BIN.getName()),
                         functionDefinitions,
-                        StringUtils.defaultString(outputDirectory.getJava(), sourceDestination),
+                        javaOutput,
                         packageName,
                         null
 
                 );
+        if (mavenProject != null) {
+            mavenProject.addCompileSourceRoot(javaOutput);
+        }
     }
 
     private void processContractFile(Collection<String> files) throws MojoExecutionException {
