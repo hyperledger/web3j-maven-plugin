@@ -1,5 +1,6 @@
 package org.web3j.mavenplugin;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.resources.TestResources;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -140,6 +142,77 @@ public class IssueITest {
                 .map(p -> p.toFile().getName()).collect(Collectors.toList());
         assertThat("Interface and java classes are generated", files.size(), is(3));
         assertTrue(files.contains("CheckImpl.java"));
+    }
+
+    @Test
+    public void issue63() throws Exception {
+        File pom = new File(resources.getBasedir("issue/63"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/63"), "generate-sources");
+        assertNotNull(mojo);
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<File> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(Path::toFile).collect(Collectors.toList());
+        assertThat("Interface and java classes are generated", files.size(), is(1));
+        File file = files.get(0);
+        assertThat(file.getName(), is("Greeter.java"));
+        String content = FileUtils.readFileToString(file);
+        assertThat(content, containsString("greet()"));
+        assertThat(content, containsString("kill()"));
+    }
+
+    @Test
+    public void issue63CustomParentContract() throws Exception {
+        File pom = new File(resources.getBasedir("issue/63"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/63"), "generate-sources");
+        assertNotNull(mojo);
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputJavaParentContractClassName = "org.web3j.mavenplugin.SampleCustomContract";
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<File> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(Path::toFile).collect(Collectors.toList());
+        assertThat("Interface and java classes are generated", files.size(), is(1));
+        File file = files.get(0);
+        assertThat(file.getName(), is("Greeter.java"));
+        String content = FileUtils.readFileToString(file);
+        assertThat(content, containsString("extends SampleCustomContract"));
+        assertThat(content, containsString("greet()"));
+        assertThat(content, containsString("kill()"));
+    }
+
+    @Test
+    public void issue63Error() throws Exception {
+        File pom = new File(resources.getBasedir("issue/63"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupConfiguredMojo(resources.getBasedir("issue/63"), "generate-sources");
+        assertNotNull(mojo);
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.abiSourceFiles.getIncludes().clear();
+        mojo.abiSourceFiles.getIncludes().add("**/*.nonexistent");
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<File> files = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("java"))
+                .map(Path::toFile).collect(Collectors.toList());
+        assertThat("Interface and java classes are generated", files.size(), is(0));
     }
 
     @Test

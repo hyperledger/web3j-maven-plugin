@@ -42,7 +42,9 @@ The are several variable to select the solidity source files, define a source de
 | `<sourceDestination/>` | relative or absolute path of the generated files (java, bin, abi)                      | `src/main/java`                 |
 | `<outputFormat/>`      | generate Java Classes(`java`), ABI(`abi`) and/or BIN (`bin`) Files (comma separated)   | `java`                          |
 | `<nativeJavaType/>`    | Creates Java Native Types (instead of Solidity Types)                                  | `true`                          |
+| `<outputJavaParentContractClassName/>` | Sets custom(? extends org.web3j.tx.Contract) class as a parent for java generated code | `org.web3j.tx.Contract` |
 | `<soliditySourceFiles>`| Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<soliditySourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.sol</include>`<br>`  </includes>`<br>`</soliditySourceFiles>`  |
+| `<abiSourceFiles>`     | Standard maven [fileset](https://maven.apache.org/shared/file-management/fileset.html) | `<abiSourceFiles>`<br>`  <directory>src/main/resources</directory>`<br>`  <includes>`<br>`    <include>**/*.json</include>`<br>`  </includes>`<br>`</abiSourceFiles>`           |
 | `<contract>`           | Filter (`<include>` or `<exclude>`) contracts based on the name.                       | `<contract>`<br>`  <includes>`<br>`    <include>greeter</include>`<br>`  </includes>`<br>`  <excludes>`<br>`    <exclude>mortal</exclude>`<br>`  <excludes>`<br>`</contracts>`  |
 | `<pathPrefixes>`       | A list (`<pathPrefixe>`) of replacements of dependency replacements inside Solidity contract.  |  |
 
@@ -69,6 +71,12 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
                 <include>**/*.sol</include>
             </includes>
         </soliditySourceFiles>
+        <abiSourceFiles>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.json</include>
+            </includes>
+        </abiSourceFiles>
         <outputDirectory>
             <java>src/java/generated</java>
             <bin>src/bin/generated</bin>
