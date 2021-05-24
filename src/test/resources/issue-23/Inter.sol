@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0;
+pragma solidity >=0.4.19 < 0.7.0;
 
 interface InterCheck {
     function check() external;
