@@ -3,6 +3,8 @@ package org.web3j.mavenplugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -18,6 +20,7 @@ import org.web3j.mavenplugin.solidity.SolidityCompiler;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,10 +42,12 @@ import java.util.stream.Stream;
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
 public class JavaClassGeneratorMojo extends AbstractMojo {
 
-    private static final String DEFAULT_INCLUDE = "**/*.sol";
+    private static final String DEFAULT_SOLIDITY_INCLUDE = "**/*.sol";
+    private static final String DEFAULT_ABI_INCLUDE = "**/*.json";
     private static final String DEFAULT_PACKAGE = "org.web3j.model";
     private static final String DEFAULT_SOURCE_DESTINATION = "src/main/java";
     private static final String DEFAULT_SOLIDITY_SOURCES = "src/main/resources";
+    private static final String DEFAULT_ABI_SOURCES = "src/main/resources";
     private static final String DEFAULT_OUTPUT_FORMAT = "java";
 
     @Parameter(property = "packageName", defaultValue = DEFAULT_PACKAGE)
@@ -57,6 +62,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     @Parameter(property = "soliditySourceFiles")
     protected FileSet soliditySourceFiles = new FileSet();
 
+    @Parameter(property = "abiSourceFiles")
+    protected FileSet abiSourceFiles = new FileSet();
+
     @Parameter(property = "contract")
     protected Contract contract;
 
@@ -68,6 +76,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
 
     @Parameter(property = "outputFormat", defaultValue = DEFAULT_OUTPUT_FORMAT)
     protected String outputFormat;
+
+    @Parameter(property = "outputJavaParentContractClassName")
+    protected String outputJavaParentContractClassName;
 
     private Path createPath(String destinationPath) throws IOException {
         Path path = Paths.get(destinationPath, packageName);
@@ -120,27 +131,31 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         if (!StringUtils.containsIgnoreCase(outputFormat, "java")) {
             return;
         }
+        List<AbiDefinition> functionDefinitions = loadContractDefinition(results.get(SolidityCompiler.Options.ABI.getName()));
+        generatedJavaClass(contractName, functionDefinitions, results.get(SolidityCompiler.Options.BIN.getName()));
+    }
 
+    private void generatedJavaClass(String contractName, List<AbiDefinition> functionDefinitions, String bin) throws IOException, ClassNotFoundException {
         int addressLength = Address.DEFAULT_LENGTH / Byte.SIZE;
         boolean primitiveTypes = false;
-
-        List<AbiDefinition> functionDefinitions = loadContractDefinition(results.get(SolidityCompiler.Options.ABI.getName()));
-
 
         if (functionDefinitions.isEmpty()) {
             getLog().warn("Unable to parse input ABI file");
             return;
         }
 
+        Class<? extends org.web3j.tx.Contract> contractClass = outputJavaParentContractClassName == null
+                ? org.web3j.tx.Contract.class
+                : (Class<? extends org.web3j.tx.Contract>) Class.forName(outputJavaParentContractClassName);
         new SolidityFunctionWrapper(
                 nativeJavaType,
                 primitiveTypes,
                 false, //generateSendTxForCalls
                 addressLength)
                 .generateJavaFiles(
-                        org.web3j.tx.Contract.class,
+                        contractClass,
                         contractName,
-                        results.get(SolidityCompiler.Options.BIN.getName()),
+                        bin,
                         functionDefinitions,
                         StringUtils.defaultString(outputDirectory.getJava(), sourceDestination),
                         packageName,
@@ -149,30 +164,67 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 );
     }
 
-    private void processContractFile(Collection<String> files) throws MojoExecutionException {
+    private void processSolidityFile(Collection<String> files) throws MojoExecutionException {
         String result = parseSoliditySources(files);
-        processResult(result, "\tNo Contract found in files '" + files + "'");
+        processResult(result, "\tNo Solidity сontract found in files '" + files + "'");
+    }
+
+    public void processAbiFile(Collection<String> fileNames) throws IOException, ClassNotFoundException {
+        for (String fileName : fileNames) {
+            File file = Paths.get(abiSourceFiles.getDirectory(), fileName).toFile();
+            generatedJavaClass(FilenameUtils.removeExtension(file.getName()), FileUtils.readFileToString(file));
+        }
+    }
+
+    private void generatedJavaClass(String contractName, String fileContent) throws IOException, ClassNotFoundException {
+        generatedJavaClass(contractName, loadContractDefinition(fileContent), "Bin file was not provided");
     }
 
     public void execute() throws MojoExecutionException {
+        processSolidityFiles();
+        processAbiFiles();
+    }
 
+    private void processSolidityFiles() throws MojoExecutionException {
         if (soliditySourceFiles.getDirectory() == null) {
             getLog().info("No Solidity directory specified, using default directory [" + DEFAULT_SOLIDITY_SOURCES + "]");
             soliditySourceFiles.setDirectory(DEFAULT_SOLIDITY_SOURCES);
         }
         if (soliditySourceFiles.getIncludes().isEmpty()) {
-            getLog().info("No Solidity contracts specified, using the default [" + DEFAULT_INCLUDE + "]");
-            soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_INCLUDE));
+            getLog().info("No Solidity contracts specified, using the default [" + DEFAULT_SOLIDITY_INCLUDE + "]");
+            soliditySourceFiles.setIncludes(Collections.singletonList(DEFAULT_SOLIDITY_INCLUDE));
         }
 
         String[] files = new FileSetManager().getIncludedFiles(soliditySourceFiles);
         if (files != null) {
-            processContractFile(Stream.of(files)
+            processSolidityFile(Stream.of(files)
                     .filter(f -> {
-                        getLog().info("Adding to process '" + f + "'");
+                        getLog().info("Solidity: adding to process '" + f + "'");
                         return true;
                     })
                     .collect(Collectors.toList()));
+        }
+    }
+
+    private void processAbiFiles() throws MojoExecutionException {
+        if (abiSourceFiles.getDirectory() == null) {
+            getLog().info("No abiSourceFiles directory specified, using default directory [" + DEFAULT_ABI_SOURCES + "]");
+            abiSourceFiles.setDirectory(DEFAULT_ABI_SOURCES);
+        }
+        if (abiSourceFiles.getIncludes().isEmpty()) {
+            getLog().info("No abiSourceFiles contracts specified, using the default [" + DEFAULT_ABI_INCLUDE + "]");
+            abiSourceFiles.setIncludes(Collections.singletonList(DEFAULT_ABI_INCLUDE));
+        }
+        String[] abiFiles = new FileSetManager().getIncludedFiles(abiSourceFiles);
+        if (abiFiles != null) {
+            try {
+                processAbiFile(Stream.of(abiFiles)
+                        .peek(it -> getLog().info("Abi: adding to process '" + it + "'"))
+                        .collect(Collectors.toList()));
+            } catch (IOException | ClassNotFoundException e) {
+                getLog().error(e);
+                throw new MojoExecutionException("Error during abi source files processing", e);
+            }
         }
     }
 
@@ -207,9 +259,9 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
     }
 
-    protected List<AbiDefinition> loadContractDefinition(String absFile) throws IOException {
+    protected List<AbiDefinition> loadContractDefinition(String abiFile) throws IOException {
         ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
-        AbiDefinition[] abiDefinition = objectMapper.readValue(absFile, AbiDefinition[].class);
+        AbiDefinition[] abiDefinition = objectMapper.readValue(abiFile, AbiDefinition[].class);
         return Arrays.asList(abiDefinition);
     }
 
