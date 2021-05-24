@@ -1,4 +1,4 @@
-pragma solidity >=0.4.23;
+pragma solidity =0.4.23;
 
 /* Example from https://www.ethereum.org/greeter */
 contract mortal {
@@ -9,7 +9,7 @@ contract mortal {
     constructor () public {owner = msg.sender;}
 
     /* Function to recover the funds on the contract */
-    function kill() public {if (msg.sender == owner) selfdestruct(msg.sender);}
+    function kill() public {if (msg.sender == owner) selfdestruct(owner);}
 }
 
 
