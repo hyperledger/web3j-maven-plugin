@@ -16,7 +16,7 @@
             <plugin>
                 <groupId>org.web3j</groupId>
                 <artifactId>web3j-maven-plugin</artifactId>
-                <version>4.5.11-SNAPSHOT</version>
+                <version>4.8.2</version>
                 <configuration>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
