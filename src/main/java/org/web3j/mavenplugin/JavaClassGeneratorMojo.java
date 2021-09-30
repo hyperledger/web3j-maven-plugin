@@ -103,12 +103,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         for (String contractFilename : contractsKeys) {
             Map<String, String> contractMetadata = contracts.get(contractFilename);
 
-            String bin = contractMetadata.get("bin");
-            if (bin == null || bin.length() == 0) {
-                contracts.remove(contractFilename);
-                getLog().debug("bin missing for:" + contractFilename);
-                continue;
-            }
+//            String bin = contractMetadata.get("bin");
+//            if (bin == null || bin.length() == 0) {
+//                contracts.remove(contractFilename);
+//                getLog().debug("bin missing for:" + contractFilename);
+//                continue;
+//            }
 
             String metadata = contractMetadata.get("metadata");
             if (metadata == null || metadata.length() == 0) {
