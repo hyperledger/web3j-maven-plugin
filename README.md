@@ -15,7 +15,7 @@ the java classes into the folder `src/main/java`.
         <plugin>
             <groupId>org.web3j</groupId>
             <artifactId>web3j-maven-plugin</artifactId>
-            <version>4.8.1</version>
+            <version>4.8.7</version>
             <configuration>
                 <soliditySourceFiles/>
             </configuration>
