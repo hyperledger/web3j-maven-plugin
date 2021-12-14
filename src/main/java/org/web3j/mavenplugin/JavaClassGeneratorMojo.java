@@ -130,6 +130,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             }
             Map<String, String> compiledContract = contracts.remove(contractFilename);
             String contractName = contractRemap.get(contractFilename);
+            /**
+             * From solidity 0.8.0 the property "abi" for the option "combined-json" is an Object instead a String.
+             * https://docs.soliditylang.org/en/v0.8.0/080-breaking-changes.html?highlight=combined-json
+             */
+            final Object abi = compiledContract.get("abi");
+            compiledContract.put("abi", abi.toString());
             contracts.put(contractName, compiledContract);
         }
         return contracts;
