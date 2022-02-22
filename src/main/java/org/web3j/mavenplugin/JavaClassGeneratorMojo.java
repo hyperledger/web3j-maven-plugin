@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,33 +93,25 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         JsonParser jsonParser = new JsonParser();
         Map<String, Object> json = jsonParser.parseJson(result);
-        Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
+        Map<String, Map<String, Object>> contracts = (Map<String, Map<String, Object>>) json.get("contracts");
         if (contracts == null) {
             getLog().warn("no contracts found");
             return null;
         }
         Map<String, String> contractRemap = new HashMap<>();
+        Map<String, Map<String, String>> extractedContracts = new HashMap<>();
 
-        HashSet<String> contractsKeys = new HashSet<>(contracts.keySet());
-        for (String contractFilename : contractsKeys) {
-            Map<String, String> contractMetadata = contracts.get(contractFilename);
+        for (String contractFilename : contracts.keySet()) {
+            Map<String, Object> contractMetadata = contracts.get(contractFilename);
 
-//            String bin = contractMetadata.get("bin");
-//            if (bin == null || bin.length() == 0) {
-//                contracts.remove(contractFilename);
-//                getLog().debug("bin missing for:" + contractFilename);
-//                continue;
-//            }
-
-            String metadata = contractMetadata.get("metadata");
-            if (metadata == null || metadata.length() == 0) {
+            Object metadata = contractMetadata.get("metadata");
+            if (metadata == null || metadata.toString().length() == 0) {
                 contracts.remove(contractFilename);
                 continue;
             }
             getLog().debug("metadata:" + metadata);
-            Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
+            Map<String, Object> metadataJson = jsonParser.parseJson(metadata.toString());
             Object settingsMap = metadataJson.get("settings");
-            // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
             if (settingsMap != null) {
                 Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
                 if (compilationTarget != null) {
@@ -128,11 +121,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                     }
                 }
             }
-            Map<String, String> compiledContract = contracts.remove(contractFilename);
+            Map<String, String> compiledContract = contracts.remove(contractFilename)
+                    .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
             String contractName = contractRemap.get(contractFilename);
-            contracts.put(contractName, compiledContract);
+            extractedContracts.put(contractName, compiledContract);
         }
-        return contracts;
+        return extractedContracts;
     }
 
     private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {

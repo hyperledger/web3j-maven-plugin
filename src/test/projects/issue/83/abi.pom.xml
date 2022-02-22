@@ -20,12 +20,12 @@
                 <configuration>
                     <packageName>model</packageName>
                     <sourceDestination>src/test/generated</sourceDestination>
-                    <soliditySourceFiles>
-                        <directory>src/test/resources</directory>
+                    <abiSourceFiles>
+                        <directory>src/test/resources/issue-83</directory>
                         <includes>
-                            <include>issue-83.sol</include>
+                            <include>EtherWallet.json</include>
                         </includes>
-                    </soliditySourceFiles>
+                    </abiSourceFiles>
                 </configuration>
             </plugin>
         </plugins>
