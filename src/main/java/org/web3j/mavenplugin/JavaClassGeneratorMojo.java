@@ -29,10 +29,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,24 +91,23 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     private Map<String, Map<String, String>> extractContracts(String result) throws MojoExecutionException {
         JsonParser jsonParser = new JsonParser();
         Map<String, Object> json = jsonParser.parseJson(result);
-        Map<String, Map<String, Object>> contracts = (Map<String, Map<String, Object>>) json.get("contracts");
+        Map<String, Map<String, String>> contracts = (Map<String, Map<String, String>>) json.get("contracts");
         if (contracts == null) {
             getLog().warn("no contracts found");
             return null;
         }
         Map<String, String> contractRemap = new HashMap<>();
-        Map<String, Map<String, String>> extractedContracts = new HashMap<>();
 
         for (String contractFilename : contracts.keySet()) {
-            Map<String, Object> contractMetadata = contracts.get(contractFilename);
+            Map<String, String> contractMetadata = contracts.get(contractFilename);
 
-            Object metadata = contractMetadata.get("metadata");
-            if (metadata == null || metadata.toString().length() == 0) {
+            String metadata = contractMetadata.get("metadata");
+            if (metadata == null || metadata.length() == 0) {
                 contracts.remove(contractFilename);
                 continue;
             }
             getLog().debug("metadata:" + metadata);
-            Map<String, Object> metadataJson = jsonParser.parseJson(metadata.toString());
+            Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
             Object settingsMap = metadataJson.get("settings");
             if (settingsMap != null) {
                 Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
@@ -121,12 +118,17 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                     }
                 }
             }
-            Map<String, String> compiledContract = contracts.remove(contractFilename)
-                    .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+            Map<String, String> compiledContract = contracts.remove(contractFilename);
+            /**
+             * From solidity 0.8.0 the property "abi" for the option "combined-json" is an Object instead a String.
+             * https://docs.soliditylang.org/en/v0.8.0/080-breaking-changes.html?highlight=combined-json
+             */
+            final Object abi = compiledContract.get("abi");
+            compiledContract.put("abi", abi.toString());
             String contractName = contractRemap.get(contractFilename);
-            extractedContracts.put(contractName, compiledContract);
+            contracts.put(contractName, compiledContract);
         }
-        return extractedContracts;
+        return contracts;
     }
 
     private void generatedJavaClass(Map<String, String> results, String contractName) throws IOException, ClassNotFoundException {
