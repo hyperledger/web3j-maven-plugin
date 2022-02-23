@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -99,16 +98,8 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
         Map<String, String> contractRemap = new HashMap<>();
 
-        HashSet<String> contractsKeys = new HashSet<>(contracts.keySet());
-        for (String contractFilename : contractsKeys) {
+        for (String contractFilename : contracts.keySet()) {
             Map<String, String> contractMetadata = contracts.get(contractFilename);
-
-//            String bin = contractMetadata.get("bin");
-//            if (bin == null || bin.length() == 0) {
-//                contracts.remove(contractFilename);
-//                getLog().debug("bin missing for:" + contractFilename);
-//                continue;
-//            }
 
             String metadata = contractMetadata.get("metadata");
             if (metadata == null || metadata.length() == 0) {
@@ -118,7 +109,6 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
             getLog().debug("metadata:" + metadata);
             Map<String, Object> metadataJson = jsonParser.parseJson(metadata);
             Object settingsMap = metadataJson.get("settings");
-            // FIXME this generates java files for interfaces with >org.ethereum:solcJ-all:0.5.2 , because the compiler generates now metadata.
             if (settingsMap != null) {
                 Map<String, String> compilationTarget = ((Map<String, Map<String, String>>) settingsMap).get("compilationTarget");
                 if (compilationTarget != null) {
@@ -129,6 +119,12 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 }
             }
             Map<String, String> compiledContract = contracts.remove(contractFilename);
+            /**
+             * From solidity 0.8.0 the property "abi" for the option "combined-json" is an Object instead a String.
+             * https://docs.soliditylang.org/en/v0.8.0/080-breaking-changes.html?highlight=combined-json
+             */
+            final Object abi = compiledContract.get("abi");
+            compiledContract.put("abi", abi.toString());
             String contractName = contractRemap.get(contractFilename);
             contracts.put(contractName, compiledContract);
         }

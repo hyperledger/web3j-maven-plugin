@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -236,5 +237,47 @@ public class IssueITest {
                 .collect(Collectors.toList());
         assertThat("ConvertLib is created", files.size(), is(1));
         assertThat(files.get(0).getFileName().toString(), is("ConvertLib.java"));
+    }
+
+    @Test
+    public void issue83_solidityVersion() throws Exception {
+        File pom = new File(resources.getBasedir("issue/83"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith(".java"))
+                .collect(Collectors.toList());
+        assertEquals("EtherWallet.java", files.get(0).getFileName().toString());
+    }
+
+    @Test
+    public void issue83_solidityVersion_withABI() throws Exception {
+        File pom = new File(resources.getBasedir("issue/83"), "abi.pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputFormat = "java";
+        mojo.execute();
+
+        Path path = Paths.get(mojo.sourceDestination);
+
+        List<Path> files = Files.find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith(".java"))
+                .collect(Collectors.toList());
+        assertEquals("EtherWallet.java", files.get(0).getFileName().toString());
     }
 }

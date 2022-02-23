@@ -1,4 +1,5 @@
-pragma solidity =0.4.23;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.5.2 <0.9.0;
 
 /* Example from https://www.ethereum.org/greeter */
 contract mortal {
@@ -6,10 +7,10 @@ contract mortal {
     address owner;
 
     /* this function is executed at initialization and sets the owner of the contract */
-    constructor () public {owner = msg.sender;}
+    constructor () {owner = msg.sender;}
 
     /* Function to recover the funds on the contract */
-    function kill() public {if (msg.sender == owner) selfdestruct(owner);}
+    function kill() public {if (msg.sender == owner) selfdestruct(payable(owner));}
 }
 
 
@@ -18,7 +19,7 @@ contract greeter is mortal {
     string greeting;
 
     /* this runs when the contract is executed */
-    constructor(string memory _greeting) public {
+    constructor(string memory _greeting) {
         greeting = _greeting;
     }
 
