@@ -8,10 +8,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -275,5 +277,50 @@ public class JavaClassGeneratorITest {
                 .collect(Collectors.toList());
         assertEquals("no files in default value", 2, java.size());
 
+    }
+
+    @Test
+    public void pomWithAbiSources() throws Exception {
+        File pom = new File(resources.getBasedir("abi-sources"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        String tempPath = testFolder.getRoot().getPath();
+        mojo.outputDirectory.setJava(
+            tempPath + File.separator + mojo.outputDirectory.getJava()
+        );
+
+        mojo.outputDirectory.setAbi(
+            tempPath + File.separator + mojo.outputDirectory.getAbi()
+        );
+
+        mojo.outputDirectory.setBin(
+            tempPath + File.separator + mojo.outputDirectory.getBin()
+        );
+
+        mojo.execute();
+
+        Path path = Paths.get(tempPath);
+
+        Map<String, Path> filenames = new HashMap<>();
+
+        List<Path> java = Files
+            .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+            .filter(file -> file.toString().endsWith("java"))
+            .peek(file -> filenames.put(file.getFileName().toString(), file))
+            .collect(Collectors.toList());
+
+        assertEquals("no files or too many files in default value", 2, java.size());
+        assertTrue("Ownable contract has not been compiled", filenames.containsKey("Ownable.java"));
+        assertTrue("OwnableAbiOnly contract has not been compiled", filenames.containsKey("OwnableAbiOnly.java"));
+
+        assertTrue(
+            "Bytecode does not seem to have been injected for Ownable contract",
+            new String(Files.readAllBytes(filenames.get("Ownable.java")), StandardCharsets.UTF_8)
+                .contains("0x608060405234801561001057600080fd5b503")
+        );
     }
 }
