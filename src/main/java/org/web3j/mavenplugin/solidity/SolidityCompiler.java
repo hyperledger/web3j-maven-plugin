@@ -130,7 +130,6 @@ public class SolidityCompiler {
 
     public enum Options {
         BIN("bin"),
-        INTERFACE("interface"),
         ABI("abi"),
         METADATA("metadata")
         ;
