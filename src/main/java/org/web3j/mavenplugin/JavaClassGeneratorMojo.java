@@ -1,6 +1,8 @@
 package org.web3j.mavenplugin;
 
 
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.io.FileUtils;
@@ -17,6 +19,7 @@ import org.web3j.abi.datatypes.Address;
 import org.web3j.codegen.SolidityFunctionWrapper;
 import org.web3j.mavenplugin.solidity.CompilerResult;
 import org.web3j.mavenplugin.solidity.SolidityCompiler;
+import org.web3j.mavenplugin.solidity.SolidityCompiler.Options;
 import org.web3j.protocol.ObjectMapperFactory;
 import org.web3j.protocol.core.methods.response.AbiDefinition;
 
@@ -25,13 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -183,7 +180,33 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     }
 
     private void generatedJavaClass(String contractName, String fileContent) throws IOException, ClassNotFoundException {
-        generatedJavaClass(contractName, loadContractDefinition(fileContent), "Bin file was not provided");
+        Map<String, String> results = parseAbiFile(fileContent);
+
+        List<AbiDefinition> functionDefinitions = loadContractDefinition(results.get(SolidityCompiler.Options.ABI.getName()));
+        if(!functionDefinitions.isEmpty()) {
+            generatedJavaClass(contractName, functionDefinitions, results.get(SolidityCompiler.Options.BIN.getName()));
+        } else {
+            getLog().warn("Ignoring input abi file for contract \"" + contractName + "\". " +
+                              "ABI Definition is empty.");
+        }
+    }
+
+    private Map<String, String> parseAbiFile(String fileContent) throws IOException {
+        Map<String, String> results = new HashMap<>();
+
+        ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
+        JsonNode abiData = objectMapper.readTree(fileContent);
+
+        if(abiData.isObject() && abiData.has("abi") && abiData.has("bytecode")) {
+            // truffle or hardhat artifact
+            results.put(SolidityCompiler.Options.BIN.getName(), abiData.get("bytecode").asText());
+            results.put(SolidityCompiler.Options.ABI.getName(), objectMapper.writeValueAsString(abiData.get("abi")));
+        } else {
+            results.put(Options.BIN.getName(), "Bin file was not provided");
+            results.put(SolidityCompiler.Options.ABI.getName(), fileContent);
+        }
+
+        return results;
     }
 
     public void execute() throws MojoExecutionException {
