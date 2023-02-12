@@ -288,6 +288,22 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
         }
     }
 
+    private void generatedMetaData(Map<String, String> contractResult, String contractName) {
+        if (!StringUtils.containsIgnoreCase(outputFormat, "metadata")) {
+            return;
+        }
+
+        String metadataJson = contractResult.get(SolidityCompiler.Options.METADATA.getName());
+        try {
+            String filename = contractName + "-metadata.json";
+            Path path = createPath(StringUtils.defaultString(outputDirectory.getMetadata(), sourceDestination));
+
+            Files.write(Paths.get(path.toString(), filename), metadataJson.getBytes());
+        } catch (IOException e) {
+            getLog().error("Could not build metadata file for contract '" + contractName + "'", e);
+        }
+    }
+
     protected List<AbiDefinition> loadContractDefinition(String abiFile) throws IOException {
         ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
         AbiDefinition[] abiDefinition = objectMapper.readValue(abiFile, AbiDefinition[].class);
@@ -336,6 +352,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
                 generatedJavaClass(contractResult, contractName);
                 generatedAbi(contractResult, contractName);
                 generatedBin(contractResult, contractName);
+                generatedMetaData(contractResult, contractName);
                 getLog().info("\tBuilt Class for contract '" + contractName + "'");
             } catch (ClassNotFoundException | IOException ioException) {
                 getLog().error("Could not build java class for contract '" + contractName + "'", ioException);

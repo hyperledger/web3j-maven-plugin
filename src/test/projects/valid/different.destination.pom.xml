@@ -23,9 +23,10 @@
                         <java>src/java/generated</java>
                         <bin>src/bin/generated</bin>
                         <abi>src/abi/generated</abi>
+                        <metadata>src/metadata/generated</metadata>
                     </outputDirectory>
                     <nativeJavaType>true</nativeJavaType>
-                    <outputFormat>java,abi,bin</outputFormat>
+                    <outputFormat>java,abi,bin,metadata</outputFormat>
                     <soliditySourceFiles>
                         <directory>src/test/resources</directory>
                         <includes>
