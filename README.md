@@ -1,7 +1,6 @@
 # web3j-maven-plugin
 [![build status](https://github.com/web3j/web3j-maven-plugin/actions/workflows/maven.yml/badge.svg)](https://github.com/web3j/web3j-maven-plugin/actions/workflows/maven.yml)
-
-[![codecov.io](https://codecov.io/github/web3j/web3j-maven-plugin/coverage.svg?branch=master)](https://codecov.io/github/web3j/web3j-maven-plugin?branch=master)
+[![codecov](https://codecov.io/gh/web3j/web3j-maven-plugin/branch/master/graph/badge.svg?token=Ar7tgwmUEz)](https://codecov.io/gh/web3j/web3j-maven-plugin)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 web3j maven plugin is used to create java classes based on the solidity contract files.
