@@ -37,8 +37,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/web3j/${project.artifactId}.git</connection>
-        <developerConnection>scm:git:https://github.com/web3j/${project.artifactId}.git</developerConnection>
+        <connection>scm::git:git//ssh@@github.com/web3j/${project.artifactId}.git</connection>
+        <developerConnection>scm:git://ssh@github.com/web3j/${project.artifactId}.git</developerConnection>
         <url>https://github.com/web3j/${project.artifactId}.git</url>
         <tag>web3j-maven-plugin-4.9.8</tag>
     </scm>
