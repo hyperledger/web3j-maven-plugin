@@ -295,7 +295,7 @@ public class IssueITest {
         mojo.outputDirectory.setBin(testFolder.getRoot().getPath() + "/bin");
         mojo.execute();
 
-        assertTrue(Paths.get(testFolder.getRoot().getPath(), "abi", "com", "sample", "generated", "Issue17main.json").toFile().exists());
-        assertTrue(Paths.get(testFolder.getRoot().getPath(), "bin", "com", "sample", "generated", "Issue17main.bin").toFile().exists());
+        assertTrue(Paths.get(testFolder.getRoot().getPath(), "abi", "com", "sample", "generated", "Sample.json").toFile().exists());
+        assertTrue(Paths.get(testFolder.getRoot().getPath(), "bin", "com", "sample", "generated", "Sample.bin").toFile().exists());
     }
 }

@@ -19,7 +19,7 @@
                 <version>4.8.7</version>
                 <configuration>
                     <soliditySourceFiles>
-                        <directory>src/test/resources/issue-17</directory>
+                        <directory>src/test/resources/issue-106</directory>
                         <includes>
                             <include>**/*.sol</include>
                         </includes>
