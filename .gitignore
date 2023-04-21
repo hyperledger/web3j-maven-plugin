@@ -115,6 +115,3 @@ fabric.properties
 
 # Sonarlint plugin
 **/.idea/*
-
-# End of https://www.gitignore.io/api/intellij
-/.idea/jarRepositories.xml
