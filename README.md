@@ -59,7 +59,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>4.9.8</version>
+    <version>4.8.1</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
