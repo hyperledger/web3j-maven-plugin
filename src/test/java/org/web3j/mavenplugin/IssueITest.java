@@ -280,4 +280,22 @@ public class IssueITest {
                 .collect(Collectors.toList());
         assertEquals("EtherWallet.java", files.get(0).getFileName().toString());
     }
+
+    @Test
+    public void issue106_ABI_and_BIN_destination() throws Exception {
+        File pom = new File(resources.getBasedir("issue/106"), "pom.xml");
+        assertNotNull(pom);
+        assertTrue(pom.exists());
+
+        JavaClassGeneratorMojo mojo = (JavaClassGeneratorMojo) mojoRule.lookupMojo("generate-sources", pom);
+        assertNotNull(mojo);
+
+        mojo.sourceDestination = testFolder.getRoot().getPath();
+        mojo.outputDirectory.setAbi(testFolder.getRoot().getPath() + "/abi");
+        mojo.outputDirectory.setBin(testFolder.getRoot().getPath() + "/bin");
+        mojo.execute();
+
+        assertTrue(Paths.get(testFolder.getRoot().getPath(), "abi", "com", "sample", "generated", "Sample.json").toFile().exists());
+        assertTrue(Paths.get(testFolder.getRoot().getPath(), "bin", "com", "sample", "generated", "Sample.bin").toFile().exists());
+    }
 }
