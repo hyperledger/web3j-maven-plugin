@@ -78,7 +78,7 @@ public class JavaClassGeneratorMojo extends AbstractMojo {
     protected String outputJavaParentContractClassName;
 
     private Path createPath(String destinationPath) throws IOException {
-        Path path = Paths.get(destinationPath, packageName);
+        Path path = Paths.get(destinationPath, packageName.replace('.', '/'));
 
         if (!path.toFile().exists()) {
             Files.createDirectories(path);
