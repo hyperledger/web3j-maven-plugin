@@ -255,6 +255,10 @@ public class JavaClassGeneratorITest {
                 tempPath + File.separator + mojo.outputDirectory.getBin()
         );
 
+        mojo.outputDirectory.setMetadata(
+                tempPath + File.separator + mojo.outputDirectory.getMetadata()
+        );
+
         mojo.execute();
 
         Path path = Paths.get(tempPath);
@@ -262,6 +266,7 @@ public class JavaClassGeneratorITest {
         List<Path> json = Files
                 .find(path, 99, (p, bfa) -> bfa.isRegularFile())
                 .filter(file -> file.toString().endsWith("json"))
+                .filter(file -> !file.toString().endsWith("-metadata.json"))
                 .collect(Collectors.toList());
         assertEquals("no files in default value", 2, json.size());
 
@@ -276,6 +281,11 @@ public class JavaClassGeneratorITest {
                 .filter(file -> file.toString().endsWith("java"))
                 .collect(Collectors.toList());
         assertEquals("no files in default value", 2, java.size());
+        List<Path> metadata = Files
+                .find(path, 99, (p, bfa) -> bfa.isRegularFile())
+                .filter(file -> file.toString().endsWith("-metadata.json"))
+                .collect(Collectors.toList());
+        assertEquals("no files in default value", 2, metadata.size());
 
     }
 

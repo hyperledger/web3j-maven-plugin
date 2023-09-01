@@ -10,6 +10,8 @@ public class SourceDestination {
     private String bin;
     @Parameter(property = "abi")
     private String abi;
+    @Parameter(property = "metadata")
+    private String metadata;
 
     public String getAbi() {
         return abi;
@@ -33,5 +35,13 @@ public class SourceDestination {
 
     public void setJava(String java) {
         this.java = java;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 }
