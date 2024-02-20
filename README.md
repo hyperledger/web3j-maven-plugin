@@ -59,7 +59,7 @@ Create a standard java maven project. Add following `<plugin>` - configuration i
 <plugin>
     <groupId>org.web3j</groupId>
     <artifactId>web3j-maven-plugin</artifactId>
-    <version>4.8.1</version>
+    <version>4.11.0</version>
     <configuration>
         <packageName>com.zuehlke.blockchain.model</packageName>
         <sourceDestination>src/main/java/generated</sourceDestination>
@@ -136,6 +136,9 @@ within a multi-module project.
 
 
 ## Changelog
+### 4.11.0
+* Update web3j core version to 4.11.0
+
 ### 4.8.1
  * Update web3j core version to 4.8.1
 
