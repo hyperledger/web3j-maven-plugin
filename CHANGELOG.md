@@ -11,7 +11,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Features
 
-* Update web3j core version to 4.11.1 [#120](https://github.com/web3j/web3j-maven-plugin/pull/120)
+* Update web3j core version to 4.11.1 [#122](https://github.com/web3j/web3j-maven-plugin/pull/122)
 
 ### BREAKING CHANGES
 
