@@ -40,7 +40,7 @@
         <connection>scm:git:git://ssh@github.com/web3j/${project.artifactId}.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/web3j/${project.artifactId}.git</developerConnection>
         <url>https://github.com/web3j/${project.artifactId}.git</url>
-        <tag>web3j-maven-plugin-4.11.0</tag>
+        <tag>web3j-maven-plugin-4.11.1</tag>
     </scm>
 
     <dependencies>
