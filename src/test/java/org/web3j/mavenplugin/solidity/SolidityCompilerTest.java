@@ -1,11 +1,16 @@
 package org.web3j.mavenplugin.solidity;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -63,6 +68,23 @@ public class SolidityCompilerTest {
         } catch (Exception v) {
             assertThat(v.getMessage(), containsString("No compatible solc release could be found for the file"));
         }
+    }
+
+    @Test
+    public void differentPragmas() {
+        //delete /home/$user/.web3j folder to download evrerytime (fresh install) new solc version
+        String currentUsersHomeDir = System.getProperty("user.home");
+        try {
+            FileUtils.deleteDirectory(Paths.get(currentUsersHomeDir + "/.web3j").toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<String> source = new LinkedList<>();
+        //it will download 0.6.12 version
+        source.add("File2.sol");
+        source.add("File1.sol");
+        CompilerResult result = solidityCompiler.compileSrc("src/test/resources/issue-70", source, new String[0], SolidityCompiler.Options.ABI, SolidityCompiler.Options.BIN);
+        assertTrue(result.errors.isEmpty());
     }
 
     @Before
