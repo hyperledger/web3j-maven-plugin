@@ -15,7 +15,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### BREAKING CHANGES
 
-* NIL
+* Bump to snapshot version 4.12.1 [#129](https://github.com/hyperledger/web3j-maven-plugin/pull/129)
 
 # [4.11.3](https://github.com/hyperledger/web3j-maven-plugin/releases/tag/web3j-maven-plugin-4.11.3)
 
