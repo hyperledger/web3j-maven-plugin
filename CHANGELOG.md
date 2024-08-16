@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [4.12.1]()(Upcoming)
+
+### Bug Fixes
+
+* Fix licence files [#127](https://github.com/hyperledger/web3j-maven-plugin/pull/127)
+
+### Features
+
+* NIL
+
+### BREAKING CHANGES
+
+* NIL
+
 # [4.11.3](https://github.com/hyperledger/web3j-maven-plugin/releases/tag/web3j-maven-plugin-4.11.3)
 
 ### Bug Fixes
