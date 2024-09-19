@@ -1,16 +1,14 @@
 package org.web3j.mavenplugin.solidity;
 
+import com.github.zafarkhaja.semver.Version;
 import org.apache.maven.plugin.logging.Log;
 import org.web3j.sokt.SolcInstance;
 import org.web3j.sokt.SolidityFile;
+import org.web3j.tuples.generated.Tuple2;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,6 +20,9 @@ import java.util.stream.Stream;
 public class SolidityCompiler {
 
     private Log LOG;
+
+    private static final String LOWEST_PRAGMA_VERSION = "0.0.0";
+    private static final String HIGHEST_PRAGMA_VERSION = "1000.1000.1000";
 
     private static SolidityCompiler INSTANCE;
     private String usedSolCVersion;
@@ -73,7 +74,7 @@ public class SolidityCompiler {
     }
 
     private Process getSolcProcessFromSokt(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
-        SolidityFile solidityFile = new SolidityFile(Paths.get(rootDirectory, sources.iterator().next()).toFile().getAbsolutePath());
+        SolidityFile solidityFile = checkPragmaVersions(rootDirectory, sources);
         SolcInstance instance = solidityFile.getCompilerInstance(".web3j", true);
         if (!instance.installed()) instance.install();
         usedSolCVersion = instance.getSolcRelease().getVersion();
@@ -81,6 +82,72 @@ public class SolidityCompiler {
         List<String> commandParts = prepareCommandOptions(instance.getSolcFile().getAbsolutePath(), rootDirectory, sources, pathPrefixes, options);
         process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
         return process;
+    }
+
+    private SolidityFile checkPragmaVersions(String rootDirectory, Collection<String> sources) {
+        SolidityFile solidityFile = null;
+        if (sources != null) {
+             solidityFile = findMinAndMaxPragma(rootDirectory, sources);
+        }
+        return solidityFile;
+    }
+
+    //narrow down solidity versions to the most common
+    private SolidityFile findMinAndMaxPragma(String rootDirectory, Collection<String> sources) {
+        Version minVersion = Version.valueOf(LOWEST_PRAGMA_VERSION);
+        Version maxVersion = Version.valueOf(HIGHEST_PRAGMA_VERSION);
+        SolidityFile selectedSolidityFile = null;
+        for (String source : sources) {
+            SolidityFile solidityFile = new SolidityFile(Paths.get(rootDirectory, source).toFile().getAbsolutePath());
+            Tuple2<Version,Version> minMaxTuple = getCurrentVersion(rootDirectory, solidityFile);
+            Version minCurrentVersion = minMaxTuple.component1();
+            Version maxCurrentVersion = minMaxTuple.component2();
+            boolean changedMin = false;
+            boolean changedMax = false;
+            if (minCurrentVersion.greaterThanOrEqualTo(minVersion)) {
+                minVersion = minCurrentVersion;
+                changedMin = true;
+            }
+            if (maxCurrentVersion.lessThanOrEqualTo(maxVersion)) {
+                maxVersion = maxCurrentVersion;
+                changedMax = true;
+            }
+            if (changedMin && changedMax) {
+                selectedSolidityFile = solidityFile;
+            }
+        }
+        if ((minVersion.greaterThan(maxVersion))) {
+            throw new RuntimeException("There are some contracts that have higher lowest pragma version then the highest pragma versions of other contracts.");
+        }
+        return selectedSolidityFile;
+    }
+
+    private Tuple2<Version, Version> getCurrentVersion(String rootDirectory, SolidityFile solidityFile) {
+        Version minCurrentVersion;
+        Version maxCurrentVersion;
+        String[] versions = cutVersionOperator(solidityFile.getVersionPragma()).replace(";","").split(" ");
+        if (versions.length == 1) {
+            minCurrentVersion = Version.valueOf(versions[0]);
+            maxCurrentVersion = Version.forIntegers(minCurrentVersion.getMajorVersion(), minCurrentVersion.getMinorVersion() + 1, minCurrentVersion.getPatchVersion());
+        } else {
+            Version firstVersion = Version.valueOf(versions[0]);
+            Version secondVersion = Version.valueOf(versions[1]);
+            if (firstVersion.greaterThan(secondVersion)) {
+                minCurrentVersion = secondVersion;
+                maxCurrentVersion = firstVersion;
+            } else {
+                minCurrentVersion = firstVersion;
+                maxCurrentVersion = secondVersion;
+            }
+        }
+        return new Tuple2<>(minCurrentVersion, maxCurrentVersion);
+    }
+
+    private String cutVersionOperator(String version) {
+        return version.replace(">", "")
+                .replace("<", "")
+                .replace("=", "")
+                .replace("^", "");
     }
 
     private Map<String, String> getAbsolutePathPrefixes(String rootDirectory, String[] pathPrefixes) {
@@ -131,8 +198,7 @@ public class SolidityCompiler {
     public enum Options {
         BIN("bin"),
         ABI("abi"),
-        METADATA("metadata")
-        ;
+        METADATA("metadata");
 
         private final String name;
 

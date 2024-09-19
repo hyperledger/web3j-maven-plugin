@@ -104,6 +104,11 @@
             <artifactId>web3j-sokt</artifactId>
             <version>0.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.zafarkhaja</groupId>
+            <artifactId>java-semver</artifactId>
+            <version>0.9.0</version>
+        </dependency>
 
     </dependencies>
 
