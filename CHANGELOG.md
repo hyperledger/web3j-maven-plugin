@@ -7,7 +7,8 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Bug Fixes
 
-* 
+* Update web3j-sokt to 0.7.0 (fixes solidity compiler release metadata parsing) [#147](https://github.com/LFDT-web3j/web3j-maven-plugin/pull/147)
+* Mark Maven plugin dependencies provided by Maven runtime as `provided` scope [#147](https://github.com/LFDT-web3j/web3j-maven-plugin/pull/147)
 
 ### Features
 
