@@ -8,6 +8,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### Bug Fixes
 
 * Update **web3j-sokt** to **0.7.0** and mark Maven runtime dependencies as `provided`. [#147](https://github.com/LFDT-web3j/web3j-maven-plugin/pull/147)
+* Fix Solidity compiler selection for projects with multiple pragma constraints by choosing a common compatible Solc version. [#150](https://github.com/LFDT-web3j/web3j-maven-plugin/pull/150)
 
 ### Features
 

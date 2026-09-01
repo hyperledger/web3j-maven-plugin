@@ -21,10 +21,13 @@ import java.util.stream.Stream;
  */
 public class SolidityCompiler {
 
+    private static final String SOLC_CACHE_DIRECTORY = ".web3j";
+
     private Log LOG;
 
     private static SolidityCompiler INSTANCE;
     private String usedSolCVersion;
+    private final SolcVersionSelector solcVersionSelector = new SolcVersionSelector();
 
     private SolidityCompiler(Log log) {
         this.LOG = log;
@@ -73,8 +76,12 @@ public class SolidityCompiler {
     }
 
     private Process getSolcProcessFromSokt(String rootDirectory, Collection<String> sources, String[] pathPrefixes, Options[] options) throws IOException {
-        SolidityFile solidityFile = new SolidityFile(Paths.get(rootDirectory, sources.iterator().next()).toFile().getAbsolutePath());
-        SolcInstance instance = solidityFile.getCompilerInstance(".web3j", true);
+        List<String> sourceFiles = normalizeSources(sources);
+        List<SolidityFile> solidityFiles = sourceFiles.stream()
+                .map(source -> new SolidityFile(Paths.get(rootDirectory, source).toFile().getAbsolutePath()))
+                .collect(Collectors.toList());
+
+        SolcInstance instance = solcVersionSelector.getCompilerInstance(SOLC_CACHE_DIRECTORY, true, solidityFiles);
         if (!instance.installed()) {
             try {
                 instance.install();
@@ -87,9 +94,20 @@ public class SolidityCompiler {
         }
         usedSolCVersion = instance.getSolcRelease().getVersion();
         Process process;
-        List<String> commandParts = prepareCommandOptions(instance.getSolcFile().getAbsolutePath(), rootDirectory, sources, pathPrefixes, options);
+        List<String> commandParts = prepareCommandOptions(instance.getSolcFile().getAbsolutePath(), rootDirectory, sourceFiles, pathPrefixes, options);
         process = Runtime.getRuntime().exec(commandParts.toArray(new String[commandParts.size()]));
         return process;
+    }
+
+    private List<String> normalizeSources(Collection<String> sources) {
+        if (sources == null || sources.isEmpty()) {
+            throw new IllegalArgumentException("No Solidity source files provided for compilation.");
+        }
+
+        return sources.stream()
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     private Map<String, String> getAbsolutePathPrefixes(String rootDirectory, String[] pathPrefixes) {
